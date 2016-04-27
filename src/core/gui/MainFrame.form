@@ -19,21 +19,6 @@
             </MenuItem>
           </SubComponents>
         </Menu>
-        <Menu class="javax.swing.JMenu" name="jMenu2">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Edit"/>
-          </Properties>
-          <SubComponents>
-            <MenuItem class="javax.swing.JMenuItem" name="jMenuItem2">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Clear URL List"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem2ActionPerformed"/>
-              </Events>
-            </MenuItem>
-          </SubComponents>
-        </Menu>
       </SubComponents>
     </Menu>
   </NonVisualComponents>
@@ -44,6 +29,7 @@
   <SyntheticProperties>
     <SyntheticProperty name="menuBar" type="java.lang.String" value="jMenuBar1"/>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -60,32 +46,21 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jScrollPane2" alignment="1" pref="799" max="32767" attributes="0"/>
-                  <Component id="jScrollPane1" alignment="1" max="32767" attributes="0"/>
+                  <Component id="jScrollPane2" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                      <Component id="btnIPV4" min="-2" pref="201" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="btnIPV6" min="-2" pref="201" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="txt_file_path" min="-2" pref="368" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jButton4" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnAddUrls" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
-                      <Component id="jButton2" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnStartIPv4Test" min="-2" pref="201" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="btnStartIPv6Test" min="-2" pref="201" max="-2" attributes="0"/>
                   </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel1" min="-2" pref="180" max="-2" attributes="0"/>
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                  </Group>
+                  <Component id="jScrollPane1" alignment="0" pref="799" max="32767" attributes="0"/>
+                  <Component id="lblUrlList" min="-2" pref="180" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -93,47 +68,27 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+              <Component id="lblUrlList" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane1" min="-2" pref="221" max="-2" attributes="0"/>
+              <Component id="jScrollPane2" min="-2" pref="221" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="btnIPV4" min="-2" pref="38" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                  <Component id="btnStartIPv4Test" min="-2" pref="38" max="-2" attributes="0"/>
                   <Group type="102" attributes="0">
-                      <Component id="btnIPV6" min="-2" pref="36" max="-2" attributes="0"/>
+                      <Component id="btnStartIPv6Test" min="-2" pref="36" max="-2" attributes="0"/>
                       <EmptySpace min="2" pref="2" max="-2" attributes="0"/>
                   </Group>
+                  <Component id="btnAddUrls" alignment="1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane2" min="-2" pref="297" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jButton2" alignment="3" min="-2" pref="47" max="-2" attributes="0"/>
-                  <Component id="txt_file_path" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jButton4" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jScrollPane1" min="-2" pref="297" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
-      <AuxValues>
-        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
-      </AuxValues>
-
-      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-      <SubComponents>
-        <Component class="javax.swing.JTextPane" name="jTextPane1">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="www.facebook.com&#xa;www.yahoo.com&#xa;www.live.com&#xa;www.wikipedia.org&#xa;www.msn.com&#xa;www.microsoft.com&#xa;www.blogspot.com&#xa;www.baidu.com&#xa;www.qq.com&#xa;www.mozilla.com&#xa;www.sina.com.cn&#xa;www.wordpress.com&#xa;www.bing.com&#xa;www.adobe.com&#xa;www.163.com&#xa;www.taobao.com&#xa;www.soso.com&#xa;www.twitter.com&#xa;www.youku.com&#xa;www.ask.com&#xa;www.sohu.com&#xa;www.amazon.com&#xa;www.windows.com&#xa;www.ebay.com&#xa;www.yahoo.co.jp&#xa;www.myspace.com&#xa;www.apple.com&#xa;www.tudou.com&#xa;www.conduit.com&#xa;www.hotmail.com&#xa;www.flickr.com&#xa;www.photobucket.com&#xa;www.tianya.cn&#xa;www.about.com&#xa;www.cnet.com&#xa;www.hao123.com&#xa;www.iefxz.com&#xa;www.xunlei.com&#xa;www.paypal.com&#xa;www.rapidshare.com&#xa;www.go.com&#xa;www.fc2.com&#xa;www.bbc.co.uk&#xa;www.imdb.com&#xa;www.orkut.com&#xa;www.sogou.com&#xa;www.56.com&#xa;www.aol.com&#xa;www.craigslist.org&#xa;www.rakuten.co.jp&#xa;www.imageshack.us&#xa;www.ku6.com&#xa;www.blogger.com&#xa;www.goo.ne.jp&#xa;www.ifeng.com&#xa;www.linkedin.com&#xa;www.yandex.ru&#xa;www.mail.ru&#xa;www.partypoker.com&#xa;www.megaupload.com&#xa;www.answers.com&#xa;www.alibaba.com&#xa;www.hi5.com&#xa;www.cnn.com&#xa;www.amazon.co.jp&#xa;www.4shared.com&#xa;www.ameblo.jp&#xa;www.gougou.com&#xa;www.skype.com&#xa;www.renren.com&#xa;www.dailymotion.com&#xa;www.naver.com&#xa;www.weather.com&#xa;www.mozilla.org&#xa;www.mediafire.com&#xa;www.bit.ly&#xa;www.hp.com&#xa;www.livedoor.jp&#xa;www.ehow.com&#xa;www.nifty.com&#xa;www.vkontakte.ru&#xa;www.alipay.com&#xa;www.nytimes.com&#xa;www.overture.com&#xa;www.sourceforge.net&#xa;www.fbcdn.net&#xa;www.xtendmedia.com&#xa;www.xinhuanet.com&#xa;www.wikimedia.org&#xa;www.pconline.com.cn&#xa;www.daum.net&#xa;www.4399.com&#xa;www.bankofamerica.com&#xa;www.ebay.de&#xa;www.uol.com.br&#xa;www.filestube.com&#xa;www.zol.com.cn&#xa;www.mop.com&#xa;www.alexa.com&#xa;www.biglobe.ne.jp"/>
-          </Properties>
-        </Component>
-      </SubComponents>
-    </Container>
-    <Component class="javax.swing.JLabel" name="jLabel1">
+    <Component class="javax.swing.JLabel" name="lblUrlList">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Tahoma" size="14" style="1"/>
@@ -144,37 +99,24 @@
         <Property name="text" type="java.lang.String" value="URL List"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="btnIPV6">
-      <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Tahoma" size="14" style="2"/>
-        </Property>
-        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/core/image/network-icon.png"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="Start Analyze  IPV6"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnIPV6ActionPerformed"/>
-      </Events>
-    </Component>
-    <Container class="javax.swing.JScrollPane" name="jScrollPane2">
+    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
       <AuxValues>
         <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
       </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JTable" name="jTable1">
+        <Component class="javax.swing.JTable" name="tblTests">
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-              <Table columnCount="6" rowCount="0">
-                <Column editable="false" title="No" type="java.lang.Object"/>
+              <Table columnCount="7" rowCount="0">
                 <Column editable="false" title="URL" type="java.lang.Object"/>
-                <Column editable="false" title="IPV4 address" type="java.lang.Object"/>
-                <Column editable="false" title="IPV4 Response  Time" type="java.lang.Object"/>
-                <Column editable="false" title="IPV6 address" type="java.lang.Object"/>
-                <Column editable="false" title="IPV6 Response  Time" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 Address" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 Ping" type="java.lang.Object"/>
+                <Column editable="true" title="IPv4 MX Address" type="java.lang.Object"/>
+                <Column editable="false" title="IPv6 Address" type="java.lang.Object"/>
+                <Column editable="false" title="IPv6 Ping" type="java.lang.Object"/>
+                <Column editable="true" title="IPv6 MX Address" type="java.lang.Object"/>
               </Table>
             </Property>
             <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
@@ -218,21 +160,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JButton" name="jButton2">
-      <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Tahoma" size="12" style="3"/>
-        </Property>
-        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/core/image/Generate-tables-icon.png"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="Export Result to CSV"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="btnIPV4">
+    <Component class="javax.swing.JButton" name="btnStartIPv4Test">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Tahoma" size="14" style="2"/>
@@ -240,28 +168,52 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/core/image/network-icon.png"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Start Analyze  IPV4"/>
+        <Property name="text" type="java.lang.String" value="Start IPv4 Test"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnIPV4ActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnStartIPv4TestActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JTextField" name="txt_file_path">
+    <Component class="javax.swing.JButton" name="btnStartIPv6Test">
       <Properties>
-        <Property name="editable" type="boolean" value="false"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JLabel" name="jLabel2">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="File Path :"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JButton" name="jButton4">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Browse"/>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Tahoma" size="14" style="2"/>
+        </Property>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/core/image/network-icon.png"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="Start IPv6 Test"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton4ActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnStartIPv6TestActionPerformed"/>
+      </Events>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane2">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JList" name="lstUrls">
+          <Properties>
+            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
+              <StringArray count="0"/>
+            </Property>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JList&lt;&gt;( new DefaultListModel() )"/>
+            <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+          </AuxValues>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JButton" name="btnAddUrls">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Add URLs"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddUrlsActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>
