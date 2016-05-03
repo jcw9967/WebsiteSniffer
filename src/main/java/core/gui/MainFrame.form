@@ -1,33 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <Form version="1.5" maxVersion="1.8" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
-  <NonVisualComponents>
-    <Menu class="javax.swing.JMenuBar" name="jMenuBar1">
-      <SubComponents>
-        <Menu class="javax.swing.JMenu" name="jMenu1">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="File"/>
-          </Properties>
-          <SubComponents>
-            <MenuItem class="javax.swing.JMenuItem" name="jMenuItem1">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Exit"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem1ActionPerformed"/>
-              </Events>
-            </MenuItem>
-          </SubComponents>
-        </Menu>
-      </SubComponents>
-    </Menu>
-  </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
-    <Property name="title" type="java.lang.String" value="Network Monitor"/>
+    <Property name="title" type="java.lang.String" value="Website Sniffer"/>
   </Properties>
   <SyntheticProperties>
-    <SyntheticProperty name="menuBar" type="java.lang.String" value="jMenuBar1"/>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
     <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
@@ -81,8 +59,8 @@
                   <Component id="btnAddUrls" alignment="1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane1" min="-2" pref="297" max="-2" attributes="0"/>
-              <EmptySpace max="32767" attributes="0"/>
+              <Component id="jScrollPane1" pref="320" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -113,12 +91,14 @@
                 <Column editable="false" title="URL" type="java.lang.Object"/>
                 <Column editable="false" title="IPv4 Address" type="java.lang.Object"/>
                 <Column editable="false" title="IPv4 Ping" type="java.lang.Object"/>
-                <Column editable="true" title="IPv4 MX Address" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 MX Address" type="java.lang.Object"/>
                 <Column editable="false" title="IPv6 Address" type="java.lang.Object"/>
                 <Column editable="false" title="IPv6 Ping" type="java.lang.Object"/>
-                <Column editable="true" title="IPv6 MX Address" type="java.lang.Object"/>
+                <Column editable="false" title="IPv6 MX Address" type="java.lang.Object"/>
               </Table>
             </Property>
+            <Property name="autoResizeMode" type="int" value="4"/>
+            <Property name="autoscrolls" type="boolean" value="false"/>
             <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
               <TableColumnModel selectionModel="0">
                 <Column maxWidth="70" minWidth="70" prefWidth="70" resizable="true">
@@ -154,7 +134,7 @@
               </TableColumnModel>
             </Property>
             <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
-              <TableHeader reorderingAllowed="false" resizingAllowed="true"/>
+              <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
             </Property>
           </Properties>
         </Component>
@@ -166,7 +146,7 @@
           <Font name="Tahoma" size="14" style="2"/>
         </Property>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/core/image/network-icon.png"/>
+          <Image iconType="3" name="/network-icon.png"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Start IPv4 Test"/>
       </Properties>
@@ -180,7 +160,7 @@
           <Font name="Tahoma" size="14" style="2"/>
         </Property>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/core/image/network-icon.png"/>
+          <Image iconType="3" name="/network-icon.png"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Start IPv6 Test"/>
       </Properties>
