@@ -27,8 +27,10 @@ import javax.swing.table.DefaultTableModel;
 import models.Domain;
 import models.IPv4Test;
 import models.IPv6Test;
+import models.Location;
 import util.DatabaseHelper;
 import util.Ping;
+import util.Ping.PingMethod;
 
 public class MainFrame extends javax.swing.JFrame
 {
@@ -44,7 +46,7 @@ public class MainFrame extends javax.swing.JFrame
 		try
 		{
 			//If we can't ping via ipv6, disable the ipv6 button
-			Ping.IPv6( "google.com" );
+			Ping.ping( "google.com", PingMethod.IPv6 );
 		}
 		catch( final IOException ex )
 		{
@@ -83,13 +85,13 @@ public class MainFrame extends javax.swing.JFrame
             },
             new String []
             {
-                "URL", "IPv4 Address", "IPv4 Ping", "IPv4 MX Address", "IPv6 Address", "IPv6 Ping", "IPv6 MX Address"
+                "URL", "IPv4 Address", "IPv4 Location", "IPv4 Ping", "IPv4 MX Address", "IPv4 MX Location", "IPv6 Address", "IPv6 Ping", "IPv6 MX Address"
             }
         )
         {
             boolean[] canEdit = new boolean []
             {
-                false, false, false, false, false, false, false
+                false, false, true, false, false, true, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex)
@@ -99,13 +101,8 @@ public class MainFrame extends javax.swing.JFrame
         });
         tblTests.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         tblTests.setAutoscrolls(false);
+        tblTests.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         jScrollPane1.setViewportView(tblTests);
-        if (tblTests.getColumnModel().getColumnCount() > 0)
-        {
-            tblTests.getColumnModel().getColumn(0).setMinWidth(70);
-            tblTests.getColumnModel().getColumn(0).setPreferredWidth(70);
-            tblTests.getColumnModel().getColumn(0).setMaxWidth(70);
-        }
 
         btnStartIPv4Test.setFont(new java.awt.Font("Tahoma", 2, 14)); // NOI18N
         btnStartIPv4Test.setIcon(new javax.swing.ImageIcon(getClass().getResource("/network-icon.png"))); // NOI18N
@@ -150,11 +147,11 @@ public class MainFrame extends javax.swing.JFrame
                     .addComponent(jScrollPane2)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(btnAddUrls)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 573, Short.MAX_VALUE)
                         .addComponent(btnStartIPv4Test, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(btnStartIPv6Test, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 799, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1)
                     .addComponent(lblUrlList, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
@@ -173,7 +170,7 @@ public class MainFrame extends javax.swing.JFrame
                         .addGap(2, 2, 2))
                     .addComponent(btnAddUrls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -289,18 +286,24 @@ public class MainFrame extends javax.swing.JFrame
 						-> 
 						{
 							final IPv4Test ipv4Test = new IPv4Test( domain );
-							dtm.setValueAt( "...", rowNum, 1 );
 							try
 							{
-								ipv4Test.performTest();
+								dtm.setValueAt( "...", rowNum, 1 );
+								dtm.setValueAt( ipv4Test.getAddress(), rowNum, 1 );
 
-								dtm.setValueAt( ipv4Test.getIpv4Address(), rowNum, 1 );
-								
-								final Integer ping = ipv4Test.getIpv4Ping();
-								dtm.setValueAt( ping == null ? "Failed" : ping, rowNum, 2 );
-								
-								dtm.setValueAt( ipv4Test.getMxAddress(), rowNum, 3 );
-								DatabaseHelper.getInstance().insertIPv4Test( ipv4Test );
+								dtm.setValueAt( "...", rowNum, 2 );
+								dtm.setValueAt( ipv4Test.getAddressLocation(), rowNum, 2 );
+
+								dtm.setValueAt( "...", rowNum, 3 );
+								dtm.setValueAt( ipv4Test.getPing(), rowNum, 3 );
+
+								dtm.setValueAt( "...", rowNum, 4 );
+								dtm.setValueAt( ipv4Test.getMxAddress(), rowNum, 4 );
+
+								dtm.setValueAt( "...", rowNum, 5 );
+								dtm.setValueAt( ipv4Test.getMxAddressLocation(), rowNum, 5 );
+
+								DatabaseHelper.getInstance().insertTest( ipv4Test, models.IPTest.Type.IPv4 );
 							}
 							catch( final SQLException ex )
 							{
@@ -313,7 +316,7 @@ public class MainFrame extends javax.swing.JFrame
 			executor.shutdown();
 			try
 			{
-				executor.awaitTermination( Long.MAX_VALUE, TimeUnit.NANOSECONDS );
+				executor.awaitTermination( Long.MAX_VALUE, TimeUnit.DAYS );
 			}
 			catch( final InterruptedException e )
 			{
@@ -336,11 +339,10 @@ public class MainFrame extends javax.swing.JFrame
 			{
 				final Domain domain = domains.get( i );
 				final IPv6Test ipv6Test = new IPv6Test( domain );
-				ipv6Test.performTest();
 
-				DatabaseHelper.getInstance().insertIPv6Test( ipv6Test );
-				dtm.setValueAt( ipv6Test.getIpv6Address(), i, 4 );
-				dtm.setValueAt( ipv6Test.getIpv6Ping(), i, 5 );
+				DatabaseHelper.getInstance().insertTest( ipv6Test, models.IPTest.Type.IPv6 );
+				dtm.setValueAt( ipv6Test.getAddress(), i, 4 );
+				dtm.setValueAt( ipv6Test.getPing(), i, 5 );
 			}
 		}
 		catch( final SQLException e )

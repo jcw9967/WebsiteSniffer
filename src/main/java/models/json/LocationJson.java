@@ -3,14 +3,16 @@ package models.json;
 public class LocationJson
 {
 	private final String city;
-	private final CountryJson country;
-	private final PositionJson location;
+	private final String country_name;
+	private final double latitude;
+	private final double longitude;
 
-	public LocationJson( final String city, final CountryJson country, final PositionJson location )
+	public LocationJson( final String city, final String country_name, final double latitude, final double longitude )
 	{
 		this.city = city;
-		this.country = country;
-		this.location = location;
+		this.country_name = country_name;
+		this.latitude = latitude;
+		this.longitude = longitude;
 	}
 
 	public String getCity()
@@ -18,13 +20,18 @@ public class LocationJson
 		return city;
 	}
 
-	public CountryJson getCountry()
+	public String getCountry()
 	{
-		return country;
+		return country_name;
 	}
 
-	public PositionJson getLocation()
+	public double getLatitude()
 	{
-		return location;
+		return latitude;
+	}
+	
+	public double getLongitude()
+	{
+		return longitude;
 	}
 }

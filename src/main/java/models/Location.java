@@ -41,4 +41,21 @@ public class Location
 	{
 		return mId;
 	}
+
+	@Override
+	public String toString()
+	{
+		final String string;
+		
+		if( mCity == null || mCity.equals( "" ) )
+		{
+			string = mCountry;
+		}
+		else
+		{
+			string = mCity + ", " + mCountry;
+		}
+		
+		return string;
+	}
 }

@@ -1,11 +1,13 @@
 package util;
 
+import com.sun.org.apache.bcel.internal.generic.IUSHR;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import models.Location;
 import models.json.LocationJson;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -13,8 +15,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LocationHelper
 {
-	public static Location getLocationByIP( final String ip )
+	public static Location getLocationByIP( final String ip ) throws NullPointerException
 	{
+		if( ip == null )
+		{
+			throw new NullPointerException();
+		}
+
 		Location location = null;
 
 		try
@@ -29,11 +36,11 @@ public class LocationHelper
 			final Response<LocationJson> response = call.execute();
 			if( response.isSuccessful() )
 			{
-				final LocationJson pojo = response.body();
-				final String city = pojo.getCity();
-				final String country = pojo.getCountry().getName();
-				final double latitude = pojo.getLocation().getLatitude();
-				final double longitude = pojo.getLocation().getLongitude();
+				final LocationJson locationJson = response.body();
+				final String city = locationJson.getCity();
+				final String country = locationJson.getCountry();
+				final double latitude = locationJson.getLatitude();
+				final double longitude = locationJson.getLongitude();
 
 				//If the location is already in the database, get its id
 				location = DatabaseHelper.getInstance().getLocation( city, country );
@@ -46,7 +53,10 @@ public class LocationHelper
 			}
 			else
 			{
-				Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, null, "NetworkService failed to getLocationByIP" );
+				try( final ResponseBody errorBody = response.errorBody() )
+				{
+					Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, errorBody.string() );
+				}
 			}
 		}
 		catch( final IOException | SQLException ex )

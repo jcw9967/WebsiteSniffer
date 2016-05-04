@@ -9,32 +9,63 @@ import org.xbill.DNS.TextParseException;
 
 public class Ping
 {
-	public static int IPv6( final String ipv6Address ) throws IOException
+	public enum PingMethod
 	{
-		final Process process = new ProcessBuilder( "ping", "-6", ipv6Address ).start();
+		IPv4,
+		IPv6
+	}
 
+	/**
+	 * Ping a given URL using a given ping method.
+	 *
+	 * @param url        the String value of the URL to ping
+	 * @param pingMethod the {@link PingMethod} to ping with
+	 * @return the int value of the number of milliseconds passed to receive a reply
+	 *
+	 * @throws IOException
+	 */
+	public static int ping( final String url, final PingMethod pingMethod ) throws IOException
+	{
+		if( url == null )
+		{
+			throw new NullPointerException();
+		}
+
+		final Process process = new ProcessBuilder( "ping", pingMethod == PingMethod.IPv6 ? "-6" : "-4", url ).start();
 		return processPing( process );
 	}
 
-	public static int IPv4( final String ipv4Address ) throws IOException
+	/**
+	 * Ping a given IP address.
+	 *
+	 * @param ipAddress the String value of the IP address to ping
+	 * @return the int value of the number of milliseconds passed to receive a reply
+	 *
+	 * @throws IOException
+	 */
+	public static int ping( final String ipAddress ) throws IOException
 	{
-		final Process process = new ProcessBuilder( "ping", "-4", ipv4Address ).start();
-		
+		if( ipAddress == null )
+		{
+			throw new NullPointerException();
+		}
+
+		final Process process = new ProcessBuilder( "ping", ipAddress ).start();
 		return processPing( process );
 	}
 
 	private static int processPing( final Process process ) throws IOException
 	{
 		final List<String> pingOutput = readPingOutput( process );
-			
-		return getAveragePing( pingOutput );
+		return getMinimumPing( pingOutput );
 	}
 
 	private static List<String> readPingOutput( final Process process ) throws IOException
 	{
 		final List<String> pingOutput = new ArrayList<>();
+
 		try( final InputStreamReader inputStreamReader = new InputStreamReader( process.getInputStream() );
-				final BufferedReader reader = new BufferedReader( inputStreamReader ) )
+			 final BufferedReader reader = new BufferedReader( inputStreamReader ) )
 		{
 			String line;
 			while( ( line = reader.readLine() ) != null )
@@ -42,19 +73,27 @@ public class Ping
 				pingOutput.add( line );
 			}
 		}
+
 		return pingOutput;
 	}
 
-	private static int getAveragePing( final List<String> pingOutput ) throws TextParseException
+	private static int getMinimumPing( final List<String> pingOutput ) throws TextParseException
 	{
 		final String lastLine = pingOutput.get( pingOutput.size() - 1 );
-		int index = lastLine.lastIndexOf( '=' );
+		int index = lastLine.indexOf( '=' );
 
 		if( index != -1 )
 		{
 			index += 2;
-			final int endIndex = lastLine.lastIndexOf( 'm' );
-			return Integer.parseInt( lastLine.substring( index, endIndex ) );
+			final int endIndex = lastLine.indexOf( 'm', index );
+			if( endIndex != -1 )
+			{
+				return Integer.parseInt( lastLine.substring( index, endIndex ) );
+			}
+			else
+			{
+				throw new TextParseException();
+			}
 		}
 		else
 		{

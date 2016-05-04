@@ -7,7 +7,7 @@ import retrofit2.http.Path;
 
 public interface NetworkService
 {
-	public static final String GEOIP_BASE_URL = "http://geoip.nekudo.com/api/";
+	public static final String GEOIP_BASE_URL = "http://freegeoip.net/json/";
 
 	@GET( "{ip}" )
 	Call<LocationJson> getLocationByIP( @Path( "ip" ) final String ip );

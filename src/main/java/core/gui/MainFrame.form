@@ -30,12 +30,12 @@
                   <Component id="jScrollPane2" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="btnAddUrls" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace pref="573" max="32767" attributes="0"/>
                       <Component id="btnStartIPv4Test" min="-2" pref="201" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="btnStartIPv6Test" min="-2" pref="201" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jScrollPane1" alignment="0" pref="799" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
                   <Component id="lblUrlList" min="-2" pref="180" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -59,7 +59,7 @@
                   <Component id="btnAddUrls" alignment="1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane1" pref="320" max="32767" attributes="0"/>
+              <Component id="jScrollPane1" pref="412" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -87,11 +87,13 @@
         <Component class="javax.swing.JTable" name="tblTests">
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-              <Table columnCount="7" rowCount="0">
+              <Table columnCount="9" rowCount="0">
                 <Column editable="false" title="URL" type="java.lang.Object"/>
                 <Column editable="false" title="IPv4 Address" type="java.lang.Object"/>
+                <Column editable="true" title="IPv4 Location" type="java.lang.Object"/>
                 <Column editable="false" title="IPv4 Ping" type="java.lang.Object"/>
                 <Column editable="false" title="IPv4 MX Address" type="java.lang.Object"/>
+                <Column editable="true" title="IPv4 MX Location" type="java.lang.Object"/>
                 <Column editable="false" title="IPv6 Address" type="java.lang.Object"/>
                 <Column editable="false" title="IPv6 Ping" type="java.lang.Object"/>
                 <Column editable="false" title="IPv6 MX Address" type="java.lang.Object"/>
@@ -101,7 +103,12 @@
             <Property name="autoscrolls" type="boolean" value="false"/>
             <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
               <TableColumnModel selectionModel="0">
-                <Column maxWidth="70" minWidth="70" prefWidth="70" resizable="true">
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
                   <Title/>
                   <Editor/>
                   <Renderer/>
@@ -132,6 +139,9 @@
                   <Renderer/>
                 </Column>
               </TableColumnModel>
+            </Property>
+            <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
+              <Color id="Default Cursor"/>
             </Property>
             <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
               <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
