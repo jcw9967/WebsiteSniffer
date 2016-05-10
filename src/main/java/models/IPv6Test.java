@@ -1,11 +1,9 @@
 package models;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.xbill.DNS.TextParseException;
 import util.DNSLookup;
-import util.Ping;
 
 public class IPv6Test extends IPTest
 {
@@ -17,8 +15,10 @@ public class IPv6Test extends IPTest
 	@Override
 	public String getAddress()
 	{
-		if( mAddress == null )
+		if( !mHasTestedAddress )
 		{
+			mHasTestedAddress = true;
+			
 			try
 			{
 				mAddress = DNSLookup.getIPv6Address( mDomain.getUrl() );
@@ -35,8 +35,10 @@ public class IPv6Test extends IPTest
 	@Override
 	public String getMxAddress()
 	{
-		if( mMxAddress == null )
+		if( !mHasTestedMxAddress )
 		{
+			mHasTestedMxAddress = true;
+			
 			try
 			{
 				final String mxUrl = DNSLookup.getMXUrl( mDomain.getUrl() );

@@ -1,27 +1,43 @@
 package models;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HttpsURLConnection;
+import org.apache.commons.net.smtp.SMTPClient;
+import org.apache.commons.net.smtp.SMTPReply;
+import util.DNSLookup;
 import util.LocationHelper;
 import util.Ping;
 
 public abstract class IPTest
 {
-	public enum Type {
+	private static final int MAX_REDIRECTS = 5;
+
+	public enum Type
+	{
 		IPv4,
 		IPv6
 	}
-		
+
 	protected final Domain mDomain;
 	protected long mTimestamp;
+	protected boolean mHasTestedAddress;
 	protected String mAddress;
+	protected boolean mHasTestedPing;
 	protected Integer mPing;
+	protected boolean mHasTestedAddressLocation;
 	protected Location mAddressLocation;
+	protected boolean mHasTestedHttpStatusCode;
 	protected Integer mHttpStatusCode;
+	protected boolean mHasTestedMxAddress;
 	protected String mMxAddress;
+	protected boolean mHasTestedMxAddressLocation;
 	protected Location mMxAddressLocation;
+	protected boolean mHasTestedWorkingSMTP;
 	protected Boolean mHasWorkingSMTP;
 
 	public IPTest( final Domain domain )
@@ -42,31 +58,35 @@ public abstract class IPTest
 
 	public Location getAddressLocation()
 	{
-		if( mAddressLocation == null )
+		if( mHasTestedAddress && !mHasTestedAddressLocation )
 		{
-			int count = 0;
-			do
+			mHasTestedAddressLocation = true;
+
+			if( mAddress != null )
 			{
-				count++;
 				mAddressLocation = LocationHelper.getLocationByIP( mAddress );
 			}
-			while( mAddressLocation == null && count < 3 );
 		}
 
 		return mAddressLocation;
 	}
-	
+
 	public Integer getPing()
 	{
-		if( mPing == null )
+		if( mHasTestedAddress && !mHasTestedPing )
 		{
-			try
+			mHasTestedPing = true;
+
+			if( mAddress != null )
 			{
-				mPing = Ping.ping( mAddress );
-			}
-			catch( final IOException ex )
-			{
-				Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, null, ex );
+				try
+				{
+					mPing = Ping.ping( mAddress );
+				}
+				catch( final IOException ex )
+				{
+					Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, null, ex );
+				}
 			}
 		}
 
@@ -75,9 +95,41 @@ public abstract class IPTest
 
 	public Integer getHttpStatusCode()
 	{
-		if( mHttpStatusCode == null )
+		if( mHasTestedAddress && !mHasTestedHttpStatusCode )
 		{
-			//TODO
+			mHasTestedHttpStatusCode = true;
+
+			if( mAddress != null )
+			{
+				try
+				{
+					final URL url = new URL( "http://" + mAddress );
+					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+					connection.connect();
+
+					mHttpStatusCode = connection.getResponseCode();
+
+					int redirectCount = 0;
+					while( mHttpStatusCode >= 300
+							&& mHttpStatusCode <= 308
+							&& redirectCount < MAX_REDIRECTS )
+					{
+						//Follow redirect
+						++redirectCount;
+						final String locationUrl = connection.getHeaderField( "Location" );
+						final URL redirectUrl = new URL( locationUrl );
+						Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, locationUrl );
+						connection = (HttpURLConnection) redirectUrl.openConnection();
+						connection.connect();
+
+						mHttpStatusCode = connection.getResponseCode();
+					}
+				}
+				catch( final IOException ex )
+				{
+					Logger.getLogger( IPTest.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+				}
+			}
 		}
 
 		return mHttpStatusCode;
@@ -85,9 +137,20 @@ public abstract class IPTest
 
 	public Location getMxAddressLocation()
 	{
-		if( mMxAddressLocation == null )
+		if( mHasTestedMxAddress && !mHasTestedMxAddressLocation )
 		{
-			mMxAddressLocation = mMxAddress == null ? null : LocationHelper.getLocationByIP( mMxAddress );
+			mHasTestedMxAddressLocation = true;
+
+			if( mMxAddress != null )
+			{
+				int count = 0;
+				do
+				{
+					++count;
+					mMxAddressLocation = LocationHelper.getLocationByIP( mMxAddress );
+				}
+				while( mMxAddressLocation == null && count < 3 );
+			}
 		}
 
 		return mMxAddressLocation;
@@ -95,10 +158,29 @@ public abstract class IPTest
 
 	public boolean hasWorkingSMTP()
 	{
-		if( mHasWorkingSMTP == null )
+		if( mHasTestedMxAddress && !mHasTestedWorkingSMTP )
 		{
-			//TODO
-			mHasWorkingSMTP = false;
+			mHasTestedWorkingSMTP = true;
+
+			if( mMxAddress != null )
+			{
+				try
+				{
+					final SMTPClient client = new SMTPClient();
+					client.connect( mMxAddress );
+
+					final int replyCode = client.getReplyCode();
+					mHasWorkingSMTP = SMTPReply.isPositiveCompletion( replyCode );
+				}
+				catch( final IOException ex )
+				{
+					Logger.getLogger( IPTest.class.getName() ).log( Level.SEVERE, null, ex );
+				}
+			}
+			else
+			{
+				mHasWorkingSMTP = false;
+			}
 		}
 
 		return mHasWorkingSMTP;

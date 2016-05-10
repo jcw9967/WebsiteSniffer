@@ -2,10 +2,11 @@ package util;
 
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
 
-public class DNSStuffTest
+public class DNSLookupTest
 {
-	public DNSStuffTest()
+	public DNSLookupTest()
 	{
 	}
 

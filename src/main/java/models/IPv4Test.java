@@ -15,8 +15,10 @@ public class IPv4Test extends IPTest
 	@Override
 	public String getAddress()
 	{
-		if( mAddress == null )
+		if( !mHasTestedAddress )
 		{
+			mHasTestedAddress = true;
+			
 			try
 			{
 				mAddress = DNSLookup.getIPv4Address( mDomain.getUrl() );
@@ -33,8 +35,10 @@ public class IPv4Test extends IPTest
 	@Override
 	public String getMxAddress()
 	{
-		if( mMxAddress == null )
+		if( !mHasTestedMxAddress )
 		{
+			mHasTestedMxAddress = true;
+			
 			try
 			{
 				final String mxUrl = DNSLookup.getMXUrl( mDomain.getUrl() );

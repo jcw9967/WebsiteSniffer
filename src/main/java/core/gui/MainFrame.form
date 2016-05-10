@@ -30,12 +30,10 @@
                   <Component id="jScrollPane2" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="btnAddUrls" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="573" max="32767" attributes="0"/>
-                      <Component id="btnStartIPv4Test" min="-2" pref="201" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="btnStartIPv6Test" min="-2" pref="201" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                      <Component id="btnStartTest" min="-2" pref="201" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" alignment="0" pref="1078" max="32767" attributes="0"/>
                   <Component id="lblUrlList" min="-2" pref="180" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -51,9 +49,8 @@
               <Component id="jScrollPane2" min="-2" pref="221" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                  <Component id="btnStartIPv4Test" min="-2" pref="38" max="-2" attributes="0"/>
                   <Group type="102" attributes="0">
-                      <Component id="btnStartIPv6Test" min="-2" pref="36" max="-2" attributes="0"/>
+                      <Component id="btnStartTest" min="-2" pref="36" max="-2" attributes="0"/>
                       <EmptySpace min="2" pref="2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="btnAddUrls" alignment="1" max="32767" attributes="0"/>
@@ -87,16 +84,22 @@
         <Component class="javax.swing.JTable" name="tblTests">
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-              <Table columnCount="9" rowCount="0">
+              <Table columnCount="15" rowCount="0">
                 <Column editable="false" title="URL" type="java.lang.Object"/>
                 <Column editable="false" title="IPv4 Address" type="java.lang.Object"/>
-                <Column editable="true" title="IPv4 Location" type="java.lang.Object"/>
-                <Column editable="false" title="IPv4 Ping" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 Location" type="java.lang.Object"/>
                 <Column editable="false" title="IPv4 MX Address" type="java.lang.Object"/>
-                <Column editable="true" title="IPv4 MX Location" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 MX Location" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 Ping" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 Status Code" type="java.lang.Object"/>
+                <Column editable="false" title="IPv4 Has Working SMTP" type="java.lang.Object"/>
                 <Column editable="false" title="IPv6 Address" type="java.lang.Object"/>
-                <Column editable="false" title="IPv6 Ping" type="java.lang.Object"/>
+                <Column editable="false" title="IPv6 Location" type="java.lang.Object"/>
                 <Column editable="false" title="IPv6 MX Address" type="java.lang.Object"/>
+                <Column editable="true" title="IPv6 MX Location" type="java.lang.Object"/>
+                <Column editable="false" title="IPv6 Ping" type="java.lang.Object"/>
+                <Column editable="false" title="IPv6 Status Code" type="java.lang.Object"/>
+                <Column editable="false" title="IPv6 Has Working SMTP" type="java.lang.Object"/>
               </Table>
             </Property>
             <Property name="autoResizeMode" type="int" value="4"/>
@@ -138,19 +141,59 @@
                   <Editor/>
                   <Renderer/>
                 </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
               </TableColumnModel>
             </Property>
             <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
               <Color id="Default Cursor"/>
             </Property>
             <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
-              <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
+              <TableHeader reorderingAllowed="false" resizingAllowed="true"/>
             </Property>
           </Properties>
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JButton" name="btnStartIPv4Test">
+    <Component class="javax.swing.JButton" name="btnStartTest">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Tahoma" size="14" style="2"/>
@@ -158,24 +201,10 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/network-icon.png"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Start IPv4 Test"/>
+        <Property name="text" type="java.lang.String" value="Start Test"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnStartIPv4TestActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="btnStartIPv6Test">
-      <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Tahoma" size="14" style="2"/>
-        </Property>
-        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/network-icon.png"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="Start IPv6 Test"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnStartIPv6TestActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnStartTestActionPerformed"/>
       </Events>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane2">

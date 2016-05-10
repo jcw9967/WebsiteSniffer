@@ -11,16 +11,14 @@ import java.util.List;
 import models.Domain;
 import models.IPTest;
 import models.IPTest.Type;
-import models.IPv4Test;
-import models.IPv6Test;
 import models.Location;
 
 public class DatabaseHelper
 {
 	private static final String DATABASE_NAME = "sniffer.db";
-	
+
 	private static DatabaseHelper databaseHelper;
-	
+
 	private DatabaseHelper()
 	{
 	}
@@ -157,9 +155,9 @@ public class DatabaseHelper
 	public void insertTest( final IPTest ipTest, final Type type ) throws SQLException
 	{
 		final String table = type == Type.IPv4 ? IPTests.TABLE_NAME_IPV4.toString() : IPTests.TABLE_NAME_IPV6.toString();
-		
+
 		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + table+ "("
+			 final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + table + "("
 					 + IPTests.FIELD_DOMAIN_ID + ","
 					 + IPTests.FIELD_TIMESTAMP + ","
 					 + IPTests.FIELD_ADDRESS + ","
@@ -192,7 +190,7 @@ public class DatabaseHelper
 			statement.executeUpdate();
 		}
 	}
-	
+
 	private static void createDatabase() throws SQLException
 	{
 		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
