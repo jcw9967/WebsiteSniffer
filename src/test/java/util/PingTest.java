@@ -1,7 +1,8 @@
 package util;
 
+import static models.IPTest.Type.IPv4;
+import static models.IPTest.Type.IPv6;
 import org.junit.Test;
-import util.Ping.PingMethod;
 
 public class PingTest
 {
@@ -12,13 +13,13 @@ public class PingTest
 	@Test
 	public void testURLUsingIPv4() throws Exception
 	{
-		Ping.ping( "google.com", PingMethod.IPv4 );
+		Ping.ping( "google.com", IPv4 );
 	}
 	
 	@Test
 	public void testURLUsingIPv6() throws Exception
 	{
-		Ping.ping( "google.com", PingMethod.IPv6 );
+		Ping.ping( "google.com", IPv6 );
 	}
 
 	@Test

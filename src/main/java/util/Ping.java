@@ -5,33 +5,29 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import models.IPTest.Type;
+import static models.IPTest.Type.IPv6;
 import org.xbill.DNS.TextParseException;
 
 public class Ping
 {
-	public enum PingMethod
-	{
-		IPv4,
-		IPv6
-	}
-
 	/**
 	 * Ping a given URL using a given ping method.
 	 *
-	 * @param url        the String value of the URL to ping
-	 * @param pingMethod the {@link PingMethod} to ping with
+	 * @param url    the String value of the URL to ping
+	 * @param ipType the {@link Type} of IP to ping with
 	 * @return the int value of the number of milliseconds passed to receive a reply
 	 *
 	 * @throws IOException
 	 */
-	public static int ping( final String url, final PingMethod pingMethod ) throws IOException
+	public static int ping( final String url, final Type ipType ) throws IOException
 	{
 		if( url == null )
 		{
 			throw new NullPointerException();
 		}
 
-		final Process process = new ProcessBuilder( "ping", pingMethod == PingMethod.IPv6 ? "-6" : "-4", url ).start();
+		final Process process = new ProcessBuilder( "ping", ipType == IPv6 ? "-6" : "-4", url ).start();
 		return processPing( process );
 	}
 

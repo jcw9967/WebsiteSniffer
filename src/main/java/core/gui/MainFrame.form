@@ -31,10 +31,17 @@
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="btnAddUrls" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
+                      <Component id="btnToggleIPv4" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnToggleIPv6" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnStartTest" min="-2" pref="201" max="-2" attributes="0"/>
                   </Group>
                   <Component id="jScrollPane1" alignment="0" pref="1078" max="32767" attributes="0"/>
-                  <Component id="lblUrlList" min="-2" pref="180" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="lblUrlList" min="-2" pref="180" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
           </Group>
@@ -50,7 +57,11 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" max="-2" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="btnStartTest" min="-2" pref="36" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="btnStartTest" alignment="3" min="-2" pref="36" max="-2" attributes="0"/>
+                          <Component id="btnToggleIPv6" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btnToggleIPv4" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <EmptySpace min="2" pref="2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="btnAddUrls" alignment="1" max="32767" attributes="0"/>
@@ -234,6 +245,18 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddUrlsActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="javax.swing.JToggleButton" name="btnToggleIPv6">
+      <Properties>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="IPv6"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JToggleButton" name="btnToggleIPv4">
+      <Properties>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="IPv4"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

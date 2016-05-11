@@ -8,38 +8,37 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import models.Domain;
-import models.IPTest;
-import models.IPTest.Type;
+import models.IPv4Test;
+import models.IPv6Test;
 import models.Location;
+import models.Test;
 
 public class DatabaseHelper
 {
 	private static final String DATABASE_NAME = "sniffer.db";
+	private static Connection connection;
 
-	private static DatabaseHelper databaseHelper;
-
-	private DatabaseHelper()
+	static
 	{
-	}
-
-	public static DatabaseHelper getInstance() throws SQLException
-	{
-		if( databaseHelper == null )
+		try
 		{
-			databaseHelper = new DatabaseHelper();
+			connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
 			createDatabase();
 		}
-
-		return databaseHelper;
+		catch( final SQLException ex )
+		{
+			Logger.getLogger( DatabaseHelper.class.getName() ).log( Level.SEVERE, null, ex );
+		}
 	}
 
-	public int count( final String tableName, final String whereStatement ) throws SQLException
+	public static int count( final String tableName, final String whereStatement ) throws SQLException
 	{
-		int count = 0;
+		int count;
 
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final Statement statement = connection.createStatement() )
+		try( final Statement statement = connection.createStatement() )
 		{
 			final String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + whereStatement;
 
@@ -53,21 +52,19 @@ public class DatabaseHelper
 		return count;
 	}
 
-	public void customUpdate( final String update ) throws SQLException
+	public static void customUpdate( final String update ) throws SQLException
 	{
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final Statement statement = connection.createStatement() )
+		try( final Statement statement = connection.createStatement() )
 		{
 			statement.executeUpdate( update );
 		}
 	}
 
-	public List<Domain> getAllDomains() throws SQLException
+	public static List<Domain> getAllDomains() throws SQLException
 	{
 		final List<Domain> domains;
 
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final Statement statement = connection.createStatement();
+		try( final Statement statement = connection.createStatement();
 			 final ResultSet resultSet = statement.executeQuery( "SELECT * FROM " + Domains.TABLE_NAME ) )
 		{
 			domains = new ArrayList<>();
@@ -84,10 +81,9 @@ public class DatabaseHelper
 		return domains;
 	}
 
-	public void insertDomains( final List<String> domains ) throws SQLException
+	public static void insertDomains( final List<String> domains ) throws SQLException
 	{
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Domains.TABLE_NAME + "("
+		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Domains.TABLE_NAME + "("
 					 + Domains.FIELD_URL
 					 + ") VALUES ( ? )"
 			 ) )
@@ -103,12 +99,11 @@ public class DatabaseHelper
 		}
 	}
 
-	public Location getLocation( final String city, final String country ) throws SQLException
+	public static Location getLocation( final String city, final String country ) throws SQLException
 	{
 		Location location = null;
 
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final PreparedStatement statement = connection.prepareStatement( "SELECT * FROM " + Locations.TABLE_NAME + " WHERE "
+		try( final PreparedStatement statement = connection.prepareStatement( "SELECT * FROM " + Locations.TABLE_NAME + " WHERE "
 					 + Locations.FIELD_CITY + "=? AND "
 					 + Locations.FIELD_COUNTRY + "=? LIMIT 1"
 			 ) )
@@ -132,11 +127,10 @@ public class DatabaseHelper
 		return location;
 	}
 
-	public void insertLocation( final String city, final String country, final double latitude, final double longitude ) throws SQLException
+	public static void insertLocation( final String city, final String country, final double latitude, final double longitude ) throws SQLException
 	{
 
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Locations.TABLE_NAME + "("
+		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Locations.TABLE_NAME + "("
 					 + Locations.FIELD_CITY + ","
 					 + Locations.FIELD_COUNTRY + ","
 					 + Locations.FIELD_LATITUDE + ","
@@ -152,109 +146,242 @@ public class DatabaseHelper
 		}
 	}
 
-	public void insertTest( final IPTest ipTest, final Type type ) throws SQLException
+	private static int getNextTestNumber( final int domainID ) throws SQLException
 	{
-		final String table = type == Type.IPv4 ? IPTests.TABLE_NAME_IPV4.toString() : IPTests.TABLE_NAME_IPV6.toString();
+		int nextTestNumber;
 
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + table + "("
-					 + IPTests.FIELD_DOMAIN_ID + ","
-					 + IPTests.FIELD_TIMESTAMP + ","
-					 + IPTests.FIELD_ADDRESS + ","
-					 + IPTests.FIELD_ADDRESS_PING + ","
-					 + IPTests.FIELD_ADDRESS_LOCATION + ","
-					 + IPTests.FIELD_HTTP_STATUS_CODE + ","
-					 + IPTests.FIELD_MX_ADDRESS + ","
-					 + IPTests.FIELD_MX_ADDRESS_LOCATION + ","
-					 + IPTests.FIELD_HAS_WORKING_SMTP
-					 + ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )"
+		try( final PreparedStatement statement = connection.prepareStatement( "SELECT COALESCE( MAX( " + Tests.FIELD_TEST_NUMBER + " ), 0 ) + 1 FROM " + Tests.TABLE_NAME + " WHERE "
+					 + Tests.FIELD_FK_DOMAIN_ID + "=?"
 			 ) )
 		{
-			final Domain domain = ipTest.getDomain();
-			statement.setObject( 1, domain == null ? null : domain.getId() );
+			statement.setInt( 1, domainID );
 
-			statement.setLong( 2, ipTest.getTimestamp() );
-			statement.setString( 3, ipTest.getAddress() );
-			statement.setObject( 4, ipTest.getPing() );
+			final ResultSet resultSet = statement.executeQuery();
+			resultSet.next();
 
-			final Location ipv6AddressLocation = ipTest.getAddressLocation();
-			statement.setObject( 5, ipv6AddressLocation == null ? null : ipv6AddressLocation.getId() );
+			nextTestNumber = resultSet.getInt( 1 );
+		}
 
-			statement.setObject( 6, ipTest.getHttpStatusCode() );
-			statement.setString( 7, ipTest.getMxAddress() );
+		return nextTestNumber;
+	}
 
-			final Location mxAddressLocation = ipTest.getMxAddressLocation();
-			statement.setObject( 8, mxAddressLocation == null ? null : mxAddressLocation.getId() );
+	public static void insertTest( final Test test ) throws SQLException
+	{
+		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Tests.TABLE_NAME + "("
+					 + Tests.FIELD_FK_DOMAIN_ID + ","
+					 + Tests.FIELD_TEST_NUMBER + ","
+					 + Tests.FIELD_TIMESTAMP + ","
+					 + Tests.FIELD_FK_LOCATION_ID + ","
+					 + Tests.FIELD_FK_IPV4_TEST_ID + ","
+					 + Tests.FIELD_FK_IPV6_TEST_ID
+					 + ") VALUES ( ?, ?, ?, ?, ?, ? )"
+			 ) )
+		{
+			statement.setInt( 1, test.getDomain().getId() );
+			statement.setInt( 2, getNextTestNumber( test.getDomain().getId() ) );
+			statement.setLong( 3, test.getTimestamp() );
+			statement.setInt( 4, test.getUserLocation().getId() );
 
-			statement.setBoolean( 9, ipTest.hasWorkingSMTP() );
+			final IPv4Test ipv4Test = test.getIPv4Test();
+			if( ipv4Test != null )
+			{
+				final int ipv4TestPK = insertIPv4Test( ipv4Test );
+				statement.setInt( 5, ipv4TestPK );
+			}
+			else
+			{
+				statement.setNull( 5, java.sql.Types.INTEGER );
+			}
+
+			final IPv6Test ipv6Test = test.getIPv6Test();
+			if( ipv6Test != null )
+			{
+				final int ipv6TestPK = insertIPv6Test( ipv6Test );
+				statement.setInt( 6, ipv6TestPK );
+			}
+			else
+			{
+				statement.setNull( 6, java.sql.Types.INTEGER );
+			}
+
 			statement.executeUpdate();
 		}
 	}
 
-	private static void createDatabase() throws SQLException
+	private static int insertIPv4Test( final IPv4Test ipv4Test ) throws SQLException
 	{
-		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
-			 final Statement statement = connection.createStatement() )
+		int PK;
+
+		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + IPv4Tests.TABLE_NAME + "("
+				+ IPv4Tests.FIELD_ADDRESS + ","
+				+ IPv4Tests.FIELD_ADDRESS_PING + ","
+				+ IPv4Tests.FIELD_FK_ADDRESS_LOCATION_ID + ","
+				+ IPv4Tests.FIELD_HTTP_STATUS_CODE + ","
+				+ IPv4Tests.FIELD_MX_ADDRESS + ","
+				+ IPv4Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ","
+				+ IPv4Tests.FIELD_HAS_WORKING_SMTP
+				+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
+		) )
 		{
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS " + Domains.TABLE_NAME + "("
+			statement.setString( 1, ipv4Test.getAddress() );
+			statement.setObject( 2, ipv4Test.getPing() );
+
+			final Location ipv4AddressLocation = ipv4Test.getAddressLocation();
+			statement.setObject( 3, ipv4AddressLocation == null ? null : ipv4AddressLocation.getId() );
+
+			statement.setObject( 4, ipv4Test.getHttpStatusCode() );
+			statement.setString( 5, ipv4Test.getMxAddress() );
+
+			final Location mxAddressLocation = ipv4Test.getMxAddressLocation();
+			statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
+
+			statement.setBoolean( 7, ipv4Test.hasWorkingSMTP() );
+			statement.executeUpdate();
+
+			try( final Statement pkStatement = connection.createStatement() )
+			{
+				final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
+				resultSet.next();
+				PK = resultSet.getInt( 1 );
+			}
+		}
+
+		return PK;
+	}
+
+	private static int insertIPv6Test( final IPv6Test ipv6Test ) throws SQLException
+	{
+		int PK;
+
+		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + IPv6Tests.TABLE_NAME + "("
+				+ IPv6Tests.FIELD_ADDRESS + ","
+				+ IPv6Tests.FIELD_ADDRESS_PING + ","
+				+ IPv6Tests.FIELD_FK_ADDRESS_LOCATION_ID + ","
+				+ IPv6Tests.FIELD_HTTP_STATUS_CODE + ","
+				+ IPv6Tests.FIELD_MX_ADDRESS + ","
+				+ IPv6Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ","
+				+ IPv6Tests.FIELD_HAS_WORKING_SMTP
+				+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
+		) )
+		{
+			statement.setString( 1, ipv6Test.getAddress() );
+			statement.setObject( 2, ipv6Test.getPing() );
+
+			final Location ipv6AddressLocation = ipv6Test.getAddressLocation();
+			statement.setObject( 3, ipv6AddressLocation == null ? null : ipv6AddressLocation.getId() );
+
+			statement.setObject( 4, ipv6Test.getHttpStatusCode() );
+			statement.setString( 5, ipv6Test.getMxAddress() );
+
+			final Location mxAddressLocation = ipv6Test.getMxAddressLocation();
+			statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
+
+			statement.setBoolean( 7, ipv6Test.hasWorkingSMTP() );
+			statement.executeUpdate();
+
+			try( final Statement pkStatement = connection.createStatement() )
+			{
+				final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
+				resultSet.next();
+				PK = resultSet.getInt( 1 );
+			}
+		}
+
+		return PK;
+	}
+
+	private static void createDatabase()
+	{
+		try( final Statement statement = connection.createStatement() )
+		{
+			connection.setAutoCommit( false );
+			statement.addBatch( "CREATE TABLE IF NOT EXISTS " + Domains.TABLE_NAME + "("
 					+ Domains.FIELD_ID + " INTEGER,"
 					+ Domains.FIELD_URL + " TEXT NOT NULL,"
 					+ "PRIMARY KEY(" + Domains.FIELD_ID + "),"
 					+ "UNIQUE(" + Domains.FIELD_URL + ") ON CONFLICT IGNORE"
 					+ ")"
 			);
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS " + Locations.TABLE_NAME + "("
+			statement.addBatch( "CREATE TABLE IF NOT EXISTS " + Locations.TABLE_NAME + "("
 					+ Locations.FIELD_ID + " INTEGER,"
 					+ Locations.FIELD_CITY + " TEXT NOT NULL,"
 					+ Locations.FIELD_COUNTRY + " TEXT NOT NULL,"
 					+ Locations.FIELD_LATITUDE + " REAL NOT NULL,"
 					+ Locations.FIELD_LONGITUDE + " REAL NOT NULL,"
 					+ "PRIMARY KEY(" + Locations.FIELD_ID + "),"
-					+ "UNIQUE(" + Locations.FIELD_CITY + "," + Locations.FIELD_COUNTRY + ") ON CONFLICT REPLACE"
+					+ "UNIQUE(" + Locations.FIELD_CITY + "," + Locations.FIELD_COUNTRY + ") ON CONFLICT IGNORE"
 					+ ")"
 			);
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS " + IPTests.TABLE_NAME_IPV4 + "("
-					+ IPTests.FIELD_ID + " INTEGER,"
-					+ IPTests.FIELD_DOMAIN_ID + " INTEGER NOT NULL,"
-					+ IPTests.FIELD_TIMESTAMP + " INTEGER NOT NULL,"
-					+ IPTests.FIELD_ADDRESS + " TEXT,"
-					+ IPTests.FIELD_ADDRESS_PING + " INTEGER,"
-					+ IPTests.FIELD_ADDRESS_LOCATION + " INTEGER,"
-					+ IPTests.FIELD_HTTP_STATUS_CODE + " INTEGER,"
-					+ IPTests.FIELD_MX_ADDRESS + " TEXT,"
-					+ IPTests.FIELD_MX_ADDRESS_LOCATION + " INTEGER,"
-					+ IPTests.FIELD_HAS_WORKING_SMTP + " INTEGER,"
-					+ "FOREIGN KEY(" + IPTests.FIELD_DOMAIN_ID + ") REFERENCES " + Domains.TABLE_NAME + "(" + Domains.FIELD_ID + "),"
-					+ "FOREIGN KEY(" + IPTests.FIELD_ADDRESS_LOCATION + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
-					+ "FOREIGN KEY(" + IPTests.FIELD_MX_ADDRESS_LOCATION + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
-					+ "PRIMARY KEY(" + IPTests.FIELD_ID + ")"
+			statement.addBatch( "CREATE TABLE IF NOT EXISTS " + IPv4Tests.TABLE_NAME + "("
+					+ IPv4Tests.FIELD_ID + " INTEGER,"
+					+ IPv4Tests.FIELD_ADDRESS + " TEXT,"
+					+ IPv4Tests.FIELD_ADDRESS_PING + " INTEGER,"
+					+ IPv4Tests.FIELD_FK_ADDRESS_LOCATION_ID + " INTEGER,"
+					+ IPv4Tests.FIELD_HTTP_STATUS_CODE + " INTEGER,"
+					+ IPv4Tests.FIELD_MX_ADDRESS + " TEXT,"
+					+ IPv4Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + " INTEGER,"
+					+ IPv4Tests.FIELD_HAS_WORKING_SMTP + " INTEGER,"
+					+ "FOREIGN KEY(" + IPv4Tests.FIELD_FK_ADDRESS_LOCATION_ID + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
+					+ "FOREIGN KEY(" + IPv4Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
+					+ "PRIMARY KEY(" + IPv4Tests.FIELD_ID + ")"
 					+ ")"
 			);
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS " + IPTests.TABLE_NAME_IPV6 + "("
-					+ IPTests.FIELD_ID + " INTEGER,"
-					+ IPTests.FIELD_DOMAIN_ID + " INTEGER NOT NULL,"
-					+ IPTests.FIELD_TIMESTAMP + " INTEGER NOT NULL,"
-					+ IPTests.FIELD_ADDRESS + " TEXT,"
-					+ IPTests.FIELD_ADDRESS_PING + " INTEGER,"
-					+ IPTests.FIELD_ADDRESS_LOCATION + " INTEGER,"
-					+ IPTests.FIELD_HTTP_STATUS_CODE + " INTEGER,"
-					+ IPTests.FIELD_MX_ADDRESS + " TEXT,"
-					+ IPTests.FIELD_MX_ADDRESS_LOCATION + " INTEGER,"
-					+ IPTests.FIELD_HAS_WORKING_SMTP + " INTEGER,"
-					+ "FOREIGN KEY(" + IPTests.FIELD_DOMAIN_ID + ") REFERENCES " + Domains.TABLE_NAME + "(" + Domains.FIELD_ID + "),"
-					+ "FOREIGN KEY(" + IPTests.FIELD_ADDRESS_LOCATION + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
-					+ "FOREIGN KEY(" + IPTests.FIELD_MX_ADDRESS_LOCATION + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
-					+ "PRIMARY KEY(" + IPTests.FIELD_ID + " )"
+			statement.addBatch( "CREATE TABLE IF NOT EXISTS " + IPv6Tests.TABLE_NAME + "("
+					+ IPv6Tests.FIELD_ID + " INTEGER,"
+					+ IPv6Tests.FIELD_ADDRESS + " TEXT,"
+					+ IPv6Tests.FIELD_ADDRESS_PING + " INTEGER,"
+					+ IPv6Tests.FIELD_FK_ADDRESS_LOCATION_ID + " INTEGER,"
+					+ IPv6Tests.FIELD_HTTP_STATUS_CODE + " INTEGER,"
+					+ IPv6Tests.FIELD_MX_ADDRESS + " TEXT,"
+					+ IPv6Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + " INTEGER,"
+					+ IPv6Tests.FIELD_HAS_WORKING_SMTP + " INTEGER,"
+					+ "FOREIGN KEY(" + IPv6Tests.FIELD_FK_ADDRESS_LOCATION_ID + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
+					+ "FOREIGN KEY(" + IPv6Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
+					+ "PRIMARY KEY(" + IPv6Tests.FIELD_ID + " )"
 					+ ")"
 			);
+			statement.addBatch( "CREATE TABLE IF NOT EXISTS " + Tests.TABLE_NAME + "("
+					+ Tests.FIELD_FK_DOMAIN_ID + " INTEGER,"
+					+ Tests.FIELD_TEST_NUMBER + " INTEGER,"
+					+ Tests.FIELD_TIMESTAMP + " INTEGER NOT NULL,"
+					+ Tests.FIELD_FK_LOCATION_ID + " INTEGER NOT NULL,"
+					+ Tests.FIELD_FK_IPV4_TEST_ID + " INTEGER,"
+					+ Tests.FIELD_FK_IPV6_TEST_ID + " INTEGER,"
+					+ "FOREIGN KEY(" + Tests.FIELD_FK_DOMAIN_ID + ") REFERENCES " + Domains.TABLE_NAME + "(" + Domains.FIELD_ID + "),"
+					+ "FOREIGN KEY(" + Tests.FIELD_FK_LOCATION_ID + ") REFERENCES " + Locations.TABLE_NAME + "(" + Locations.FIELD_ID + "),"
+					+ "FOREIGN KEY(" + Tests.FIELD_FK_IPV4_TEST_ID + ") REFERENCES " + IPv4Tests.TABLE_NAME + "(" + IPv4Tests.FIELD_ID + "),"
+					+ "FOREIGN KEY(" + Tests.FIELD_FK_IPV6_TEST_ID + ") REFERENCES " + IPv6Tests.TABLE_NAME + "(" + IPv6Tests.FIELD_ID + "),"
+					+ "PRIMARY KEY(" + Tests.FIELD_FK_DOMAIN_ID + "," + Tests.FIELD_TEST_NUMBER + ")"
+					+ ")"
+			);
+
+			statement.executeBatch();
+			connection.setAutoCommit( true );
+		}
+		catch( final SQLException ex )
+		{
+			Logger.getLogger( DatabaseHelper.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 	}
 
-	public enum Domains
+	@Override
+	protected void finalize() throws Throwable
 	{
-		TABLE_NAME( "domains" ),
-		FIELD_ID( "id" ),
-		FIELD_URL( "url" );
+		try
+		{
+			connection.close();
+		}
+		finally
+		{
+			super.finalize();
+		}
+	}
+
+	public static enum Domains
+	{
+		TABLE_NAME( "Domains" ),
+		FIELD_ID( "DomainID" ),
+		FIELD_URL( "URL" );
 
 		private final String mField;
 
@@ -270,14 +397,14 @@ public class DatabaseHelper
 		}
 	}
 
-	public enum Locations
+	public static enum Locations
 	{
-		TABLE_NAME( "locations" ),
-		FIELD_ID( "id" ),
-		FIELD_CITY( "city" ),
-		FIELD_COUNTRY( "country" ),
-		FIELD_LATITUDE( "latitude" ),
-		FIELD_LONGITUDE( "longitude" );
+		TABLE_NAME( "Locations" ),
+		FIELD_ID( "LocationID" ),
+		FIELD_CITY( "City" ),
+		FIELD_COUNTRY( "Country" ),
+		FIELD_LATITUDE( "Latitude" ),
+		FIELD_LONGITUDE( "Longitude" );
 
 		private final String mField;
 
@@ -293,24 +420,71 @@ public class DatabaseHelper
 		}
 	}
 
-	public enum IPTests
+	public static enum Tests
 	{
-		TABLE_NAME_IPV4( "ipv4_tests" ),
-		TABLE_NAME_IPV6( "ipv6_tests" ),
-		FIELD_ID( "id" ),
-		FIELD_DOMAIN_ID( "domain_id" ),
-		FIELD_TIMESTAMP( "timestamp" ),
-		FIELD_ADDRESS( "address" ),
-		FIELD_ADDRESS_PING( "address_ping" ),
-		FIELD_ADDRESS_LOCATION( "address_location" ),
-		FIELD_HTTP_STATUS_CODE( "http_status_code" ),
-		FIELD_MX_ADDRESS( "mx_address" ),
-		FIELD_MX_ADDRESS_LOCATION( "mx_address_location" ),
-		FIELD_HAS_WORKING_SMTP( "has_working_smtp" );
+		TABLE_NAME( "Tests" ),
+		FIELD_FK_DOMAIN_ID( "FK_DomainID" ),
+		FIELD_TEST_NUMBER( "TestNumber" ),
+		FIELD_TIMESTAMP( "Timestamp" ),
+		FIELD_FK_LOCATION_ID( "FK_LocationID" ),
+		FIELD_FK_IPV4_TEST_ID( "FK_IPv4TestID" ),
+		FIELD_FK_IPV6_TEST_ID( "FK_IPv6TestID" );
 
 		private final String mField;
 
-		private IPTests( final String field )
+		private Tests( final String field )
+		{
+			mField = field;
+		}
+
+		@Override
+		public String toString()
+		{
+			return mField;
+		}
+	}
+
+	public static enum IPv4Tests
+	{
+		TABLE_NAME( "IPv4Tests" ),
+		FIELD_ID( "IPv4TestID" ),
+		FIELD_ADDRESS( "IPv4Address" ),
+		FIELD_ADDRESS_PING( "IPv4AddressPing" ),
+		FIELD_FK_ADDRESS_LOCATION_ID( "FK_IPv4AddressLocationID" ),
+		FIELD_HTTP_STATUS_CODE( "IPv4HttpStatusCode" ),
+		FIELD_MX_ADDRESS( "IPv4MXAddress" ),
+		FIELD_FK_MX_ADDRESS_LOCATION_ID( "FK_IPv4MXAddressLocationID" ),
+		FIELD_HAS_WORKING_SMTP( "IPv4HasWorkingSMTP" );
+
+		private final String mField;
+
+		private IPv4Tests( final String field )
+		{
+			mField = field;
+		}
+
+		@Override
+		public String toString()
+		{
+			return mField;
+		}
+	}
+
+	public static enum IPv6Tests
+	{
+		TABLE_NAME( "IPv6Tests" ),
+		FIELD_ID( "IPv6TestID" ),
+		FIELD_ADDRESS( "IPv6Address" ),
+		FIELD_ADDRESS_PING( "IPv6AddressPing" ),
+		FIELD_FK_ADDRESS_LOCATION_ID( "FK_IPv6AddressLocationID" ),
+		FIELD_HTTP_STATUS_CODE( "IPv6HttpStatusCode" ),
+		FIELD_MX_ADDRESS( "IPv6MXAddress" ),
+		FIELD_FK_MX_ADDRESS_LOCATION_ID( "FK_IPv6MXAddressLocationID" ),
+		FIELD_HAS_WORKING_SMTP( "IPv6HasWorkingSMTP" );
+
+		private final String mField;
+
+		private IPv6Tests( final String field )
 		{
 			mField = field;
 		}

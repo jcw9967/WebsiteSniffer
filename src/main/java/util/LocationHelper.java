@@ -1,6 +1,5 @@
 package util;
 
-import com.sun.org.apache.bcel.internal.generic.IUSHR;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -15,13 +14,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LocationHelper
 {
-	public static Location getLocationByIP( final String ip ) throws NullPointerException
+	public static Location getLocationForHost()
 	{
-		if( ip == null )
-		{
-			throw new NullPointerException();
-		}
-
+		return getLocationByIP( "" );
+	}
+	
+	public static Location getLocationByIP( final String ip )
+	{
 		Location location = null;
 
 		try
@@ -43,12 +42,12 @@ public class LocationHelper
 				final double longitude = locationJson.getLongitude();
 
 				//If the location is already in the database, get its id
-				location = DatabaseHelper.getInstance().getLocation( city, country );
+				location = DatabaseHelper.getLocation( city, country );
 				if( location == null )
 				{
 					//Location not found; insert it
-					DatabaseHelper.getInstance().insertLocation( city, country, latitude, longitude );
-					location = DatabaseHelper.getInstance().getLocation( city, country );
+					DatabaseHelper.insertLocation( city, country, latitude, longitude );
+					location = DatabaseHelper.getLocation( city, country );
 				}
 			}
 			else

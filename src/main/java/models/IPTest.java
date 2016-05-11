@@ -6,10 +6,8 @@ import java.net.URL;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.ssl.HttpsURLConnection;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
-import util.DNSLookup;
 import util.LocationHelper;
 import util.Ping;
 
@@ -24,7 +22,6 @@ public abstract class IPTest
 	}
 
 	protected final Domain mDomain;
-	protected long mTimestamp;
 	protected boolean mHasTestedAddress;
 	protected String mAddress;
 	protected boolean mHasTestedPing;
@@ -38,22 +35,11 @@ public abstract class IPTest
 	protected boolean mHasTestedMxAddressLocation;
 	protected Location mMxAddressLocation;
 	protected boolean mHasTestedWorkingSMTP;
-	protected Boolean mHasWorkingSMTP;
+	protected boolean mHasWorkingSMTP = false;
 
 	public IPTest( final Domain domain )
 	{
 		mDomain = domain;
-		mTimestamp = new Date().getTime();
-	}
-
-	public Domain getDomain()
-	{
-		return mDomain;
-	}
-
-	public long getTimestamp()
-	{
-		return mTimestamp;
 	}
 
 	public Location getAddressLocation()
@@ -118,7 +104,6 @@ public abstract class IPTest
 						++redirectCount;
 						final String locationUrl = connection.getHeaderField( "Location" );
 						final URL redirectUrl = new URL( locationUrl );
-						Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, locationUrl );
 						connection = (HttpURLConnection) redirectUrl.openConnection();
 						connection.connect();
 
@@ -143,13 +128,7 @@ public abstract class IPTest
 
 			if( mMxAddress != null )
 			{
-				int count = 0;
-				do
-				{
-					++count;
-					mMxAddressLocation = LocationHelper.getLocationByIP( mMxAddress );
-				}
-				while( mMxAddressLocation == null && count < 3 );
+				mMxAddressLocation = LocationHelper.getLocationByIP( mMxAddress );
 			}
 		}
 
@@ -176,10 +155,6 @@ public abstract class IPTest
 				{
 					Logger.getLogger( IPTest.class.getName() ).log( Level.SEVERE, null, ex );
 				}
-			}
-			else
-			{
-				mHasWorkingSMTP = false;
 			}
 		}
 

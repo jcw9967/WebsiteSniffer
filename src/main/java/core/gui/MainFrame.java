@@ -26,9 +26,16 @@ import javax.swing.table.DefaultTableModel;
 import models.Domain;
 import models.IPv4Test;
 import models.IPv6Test;
+import static models.IPTest.Type.*;
+import models.Location;
+import models.Test;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import util.DatabaseHelper;
+import util.LocationHelper;
+import util.NetworkService;
 import util.Ping;
-import util.Ping.PingMethod;
+import util.SSLUtilities;
 
 public class MainFrame extends javax.swing.JFrame
 {
@@ -41,14 +48,18 @@ public class MainFrame extends javax.swing.JFrame
 		setApplicationIcon();
 		updateUrlList();
 
+		SSLUtilities.trustAllHostnames();
+		SSLUtilities.trustAllHttpsCertificates();
+
 		try
 		{
 			//If we can't ping via ipv6, prevent it
-			Ping.ping( "google.com", PingMethod.IPv6 );
+			Ping.ping( "google.com", IPv6 );
 		}
 		catch( final IOException ex )
 		{
-			mHasIPv6 = false;
+			btnToggleIPv6.setSelected( false );
+			btnToggleIPv6.setEnabled( false );
 		}
 	}
 
@@ -67,6 +78,8 @@ public class MainFrame extends javax.swing.JFrame
         jScrollPane2 = new javax.swing.JScrollPane();
         lstUrls = new javax.swing.JList<>( new DefaultListModel() );
         btnAddUrls = new javax.swing.JButton();
+        btnToggleIPv6 = new javax.swing.JToggleButton();
+        btnToggleIPv4 = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Website Sniffer");
@@ -124,6 +137,12 @@ public class MainFrame extends javax.swing.JFrame
             }
         });
 
+        btnToggleIPv6.setSelected(true);
+        btnToggleIPv6.setText("IPv6");
+
+        btnToggleIPv4.setSelected(true);
+        btnToggleIPv4.setText("IPv4");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -135,9 +154,15 @@ public class MainFrame extends javax.swing.JFrame
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(btnAddUrls)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnToggleIPv4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnToggleIPv6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnStartTest, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1078, Short.MAX_VALUE)
-                    .addComponent(lblUrlList, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblUrlList, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -150,7 +175,10 @@ public class MainFrame extends javax.swing.JFrame
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnStartTest, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnStartTest, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnToggleIPv6)
+                            .addComponent(btnToggleIPv4))
                         .addGap(2, 2, 2))
                     .addComponent(btnAddUrls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -171,6 +199,7 @@ public class MainFrame extends javax.swing.JFrame
 				disableButtons();
 				performTests();
 				enableButtons();
+
 				return null;
 			}
 		}.execute();
@@ -190,23 +219,28 @@ public class MainFrame extends javax.swing.JFrame
 	public static void main( final String args[] )
 	{
 		/* Create and display the form */
-		java.awt.EventQueue.invokeLater( ()
-				-> 
+		java.awt.EventQueue.invokeLater( new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
 				{
-					try
-					{
-						UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-					}
-					catch( final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e )
-					{
-					}
+					UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
+				}
+				catch( final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e )
+				{
+				}
 
-					new MainFrame().setVisible( true );
+				new MainFrame().setVisible( true );
+			}
 		} );
 	}
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddUrls;
     private javax.swing.JButton btnStartTest;
+    private javax.swing.JToggleButton btnToggleIPv4;
+    private javax.swing.JToggleButton btnToggleIPv6;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lblUrlList;
@@ -214,18 +248,26 @@ public class MainFrame extends javax.swing.JFrame
     private javax.swing.JTable tblTests;
     // End of variables declaration//GEN-END:variables
 
-	private static boolean mHasIPv6 = true;
-
+	private boolean btnToggleIPv4OldState;
+	private boolean btnToggleIPv6OldState;
 	private void disableButtons()
 	{
 		btnStartTest.setEnabled( false );
 		btnAddUrls.setEnabled( false );
+		
+		btnToggleIPv4OldState = btnToggleIPv4.isSelected();
+		btnToggleIPv4.setEnabled( false );
+		
+		btnToggleIPv6OldState = btnToggleIPv6.isSelected();
+		btnToggleIPv6.setEnabled( false );
 	}
 
 	private void enableButtons()
 	{
 		btnStartTest.setEnabled( true );
 		btnAddUrls.setEnabled( true );
+		btnToggleIPv4.setEnabled( btnToggleIPv4OldState );
+		btnToggleIPv6.setEnabled( btnToggleIPv6OldState );
 	}
 
 	private void setApplicationIcon()
@@ -235,114 +277,129 @@ public class MainFrame extends javax.swing.JFrame
 
 	private void performTests()
 	{
-		try
+		if( btnToggleIPv4.isSelected() || btnToggleIPv6.isSelected() )
 		{
-			final ExecutorService executor = Executors.newFixedThreadPool( 50 );
-			final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
-			final DefaultTableModel dtm = (DefaultTableModel) tblTests.getModel();
-			for( int i = 0; i < domains.size(); i++ )
-			{
-				final Domain domain = domains.get( i );
-				final int rowNum = i;
-
-				dtm.addRow( new Object[]
-				{
-					domain.getUrl()
-				} );
-
-				executor.execute( new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						final IPv4Test ipv4Test = new IPv4Test( domain );
-						try
-						{
-							int columnNum = dtm.findColumn( "IPv4 Address" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv4Test.getAddress(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv4 Location" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv4Test.getAddressLocation(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv4 MX Address" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv4Test.getMxAddress(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv4 MX Location" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv4Test.getMxAddressLocation(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv4 Ping" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv4Test.getPing(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv4 Status Code" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv4Test.getHttpStatusCode(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv4 Has Working SMTP" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv4Test.hasWorkingSMTP(), rowNum, columnNum );
-
-							final IPv6Test ipv6Test = new IPv6Test( domain );
-							columnNum = dtm.findColumn( "IPv6 Address" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv6Test.getAddress(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv6 Location" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv6Test.getAddressLocation(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv6 MX Address" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv6Test.getMxAddress(), rowNum, columnNum );
-
-							columnNum = dtm.findColumn( "IPv6 MX Location" );
-							dtm.setValueAt( "...", rowNum, columnNum );
-							dtm.setValueAt( ipv6Test.getMxAddressLocation(), rowNum, columnNum );
-
-							if( mHasIPv6 )
-							{
-								columnNum = dtm.findColumn( "IPv6 Ping" );
-								dtm.setValueAt( "...", rowNum, columnNum );
-								dtm.setValueAt( ipv6Test.getPing(), rowNum, columnNum );
-
-								columnNum = dtm.findColumn( "IPv6 Status Code" );
-								dtm.setValueAt( "...", rowNum, columnNum );
-								dtm.setValueAt( ipv6Test.getHttpStatusCode(), rowNum, columnNum );
-
-								columnNum = dtm.findColumn( "IPv6 Has Working SMTP" );
-								dtm.setValueAt( "...", rowNum, columnNum );
-								dtm.setValueAt( ipv6Test.hasWorkingSMTP(), rowNum, columnNum );
-
-								DatabaseHelper.getInstance().insertTest( ipv6Test, models.IPTest.Type.IPv6 );
-							}
-
-							DatabaseHelper.getInstance().insertTest( ipv4Test, models.IPTest.Type.IPv4 );
-						}
-						catch( final SQLException ex )
-						{
-							Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
-						}
-					}
-				} );
-			}
-
-			//Hack to block the main thread until finished
-			executor.shutdown();
+			//Get user's location
+			final Location userLocation = LocationHelper.getLocationForHost();
+			
 			try
 			{
-				executor.awaitTermination( Long.MAX_VALUE, TimeUnit.DAYS );
+				final ExecutorService executor = Executors.newFixedThreadPool( 50 );
+				final List<Domain> domains = DatabaseHelper.getAllDomains();
+				final DefaultTableModel dtm = (DefaultTableModel) tblTests.getModel();
+				for( int i = 0; i < domains.size(); i++ )
+				{
+					final Domain domain = domains.get( i );
+					final int rowNum = i;
+
+					dtm.addRow( new Object[]
+					{
+						domain.getUrl()
+					} );
+
+					executor.execute( new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							int columnNum;
+
+							try
+							{
+								final Test test = new Test( domain, userLocation );
+								
+								if( btnToggleIPv4.isSelected() )
+								{
+									final IPv4Test ipv4Test = new IPv4Test( domain );
+									columnNum = dtm.findColumn( "IPv4 Address" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv4Test.getAddress(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv4 Location" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv4Test.getAddressLocation(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv4 MX Address" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv4Test.getMxAddress(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv4 MX Location" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv4Test.getMxAddressLocation(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv4 Ping" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv4Test.getPing(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv4 Status Code" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv4Test.getHttpStatusCode(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv4 Has Working SMTP" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv4Test.hasWorkingSMTP(), rowNum, columnNum );
+									
+									test.setIPv4Test( ipv4Test );
+								}
+
+								if( btnToggleIPv6.isSelected() )
+								{
+									final IPv6Test ipv6Test = new IPv6Test( domain );
+									columnNum = dtm.findColumn( "IPv6 Address" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv6Test.getAddress(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv6 Location" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv6Test.getAddressLocation(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv6 MX Address" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv6Test.getMxAddress(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv6 MX Location" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv6Test.getMxAddressLocation(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv6 Ping" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv6Test.getPing(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv6 Status Code" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv6Test.getHttpStatusCode(), rowNum, columnNum );
+
+									columnNum = dtm.findColumn( "IPv6 Has Working SMTP" );
+									dtm.setValueAt( "...", rowNum, columnNum );
+									dtm.setValueAt( ipv6Test.hasWorkingSMTP(), rowNum, columnNum );
+
+									test.setIPv6Test( ipv6Test );
+								}
+								
+								DatabaseHelper.insertTest( test );
+							}
+							catch( final SQLException ex )
+							{
+								Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+							}
+						}
+					} );
+				}
+
+				//Hack to block the main thread until finished
+				executor.shutdown();
+				try
+				{
+					executor.awaitTermination( Long.MAX_VALUE, TimeUnit.DAYS );
+				}
+				catch( final InterruptedException e )
+				{
+				}
 			}
-			catch( final InterruptedException e )
+			catch( final SQLException ex )
 			{
+				Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
 			}
-		}
-		catch( final SQLException ex )
-		{
-			Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 	}
 
@@ -359,7 +416,7 @@ public class MainFrame extends javax.swing.JFrame
 				domains.add( line );
 			}
 
-			DatabaseHelper.getInstance().insertDomains( domains );
+			DatabaseHelper.insertDomains( domains );
 			updateUrlList();
 		}
 		catch( final IOException | SQLException ex )
@@ -372,7 +429,7 @@ public class MainFrame extends javax.swing.JFrame
 	{
 		try
 		{
-			final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
+			final List<Domain> domains = DatabaseHelper.getAllDomains();
 			final DefaultListModel listModel = (DefaultListModel) lstUrls.getModel();
 
 			listModel.clear();
