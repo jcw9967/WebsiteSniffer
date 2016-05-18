@@ -100,10 +100,11 @@ public abstract class IPTest
 				try
 				{
 					final SMTPClient client = new SMTPClient();
+					client.setConnectTimeout( 4000 );
 					client.connect( mMxAddress );
 
-					final int replyCode = client.getReplyCode();
-					mHasWorkingSMTP = SMTPReply.isPositiveCompletion( replyCode );
+					mHasWorkingSMTP = SMTPReply.isPositiveCompletion( client.getReplyCode() );
+					client.disconnect();
 				}
 				catch( final IOException ex )
 				{
