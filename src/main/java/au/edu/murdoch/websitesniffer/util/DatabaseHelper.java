@@ -27,6 +27,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -166,113 +167,103 @@ public class DatabaseHelper
 				+ ") VALUES ( ?, ?, ?, ?, ?, ? )"
 		) )
 		{
-			statement.setInt( 1, test.getDomain().getId() );
-			statement.setInt( 2, getNextTestNumber( test.getDomain().getId() ) );
-			statement.setLong( 3, test.getTimestamp() );
-			statement.setInt( 4, test.getUserLocation().getId() );
+			statement.setObject( 1, test.getDomain().getId(), Types.INTEGER );
+			statement.setObject( 2, getNextTestNumber( test.getDomain().getId() ), Types.INTEGER );
+			statement.setObject( 3, test.getTimestamp(), Types.INTEGER );
+			statement.setObject( 4, test.getUserLocation().getId(), Types.INTEGER );
 
-			final IPv4Test ipv4Test = test.getIPv4Test();
-			if( ipv4Test != null )
-			{
-				final int ipv4TestPK = insertIPv4Test( ipv4Test );
-				statement.setInt( 5, ipv4TestPK );
-			}
-			else
-			{
-				statement.setNull( 5, java.sql.Types.INTEGER );
-			}
+			final Integer ipv4TestPK = insertIPv4Test( test.getIPv4Test() );
+			statement.setObject( 5, ipv4TestPK, Types.INTEGER );
 
-			final IPv6Test ipv6Test = test.getIPv6Test();
-			if( ipv6Test != null )
-			{
-				final int ipv6TestPK = insertIPv6Test( ipv6Test );
-				statement.setInt( 6, ipv6TestPK );
-			}
-			else
-			{
-				statement.setNull( 6, java.sql.Types.INTEGER );
-			}
+			final Integer ipv6TestPK = insertIPv6Test( test.getIPv6Test() );
+			statement.setObject( 6, ipv6TestPK, Types.INTEGER );
 
 			statement.executeUpdate();
 		}
 	}
 
-	private static int insertIPv4Test( final IPv4Test ipv4Test ) throws SQLException
+	private static Integer insertIPv4Test( final IPv4Test ipv4Test ) throws SQLException
 	{
-		int PK;
-
-		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + IPv4Tests.TABLE_NAME + "("
-				+ IPv4Tests.FIELD_ADDRESS + ","
-				+ IPv4Tests.FIELD_ADDRESS_PING + ","
-				+ IPv4Tests.FIELD_FK_ADDRESS_LOCATION_ID + ","
-				+ IPv4Tests.FIELD_HTTP_STATUS_CODE + ","
-				+ IPv4Tests.FIELD_MX_ADDRESS + ","
-				+ IPv4Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ","
-				+ IPv4Tests.FIELD_HAS_WORKING_SMTP
-				+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
-		) )
+		Integer PK = null;
+		
+		if( ipv4Test != null )
 		{
-			statement.setString( 1, ipv4Test.getAddress() );
-			statement.setObject( 2, ipv4Test.getPing() );
-
-			final Location ipv4AddressLocation = ipv4Test.getAddressLocation();
-			statement.setObject( 3, ipv4AddressLocation == null ? null : ipv4AddressLocation.getId() );
-
-			statement.setObject( 4, ipv4Test.getHttpStatusCode() );
-			statement.setString( 5, ipv4Test.getMxAddress() );
-
-			final Location mxAddressLocation = ipv4Test.getMxAddressLocation();
-			statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
-
-			statement.setBoolean( 7, ipv4Test.hasWorkingSMTP() );
-			statement.executeUpdate();
-
-			try( final Statement pkStatement = connection.createStatement() )
+			try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + IPv4Tests.TABLE_NAME + "("
+					+ IPv4Tests.FIELD_ADDRESS + ","
+					+ IPv4Tests.FIELD_ADDRESS_PING + ","
+					+ IPv4Tests.FIELD_FK_ADDRESS_LOCATION_ID + ","
+					+ IPv4Tests.FIELD_HTTP_STATUS_CODE + ","
+					+ IPv4Tests.FIELD_MX_ADDRESS + ","
+					+ IPv4Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ","
+					+ IPv4Tests.FIELD_HAS_WORKING_SMTP
+					+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
+			) )
 			{
-				final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
-				resultSet.next();
-				PK = resultSet.getInt( 1 );
+				statement.setString( 1, ipv4Test.getAddress() );
+				statement.setObject( 2, ipv4Test.getPing(), Types.INTEGER );
+
+				final Location ipv4AddressLocation = ipv4Test.getAddressLocation();
+				statement.setObject( 3, ipv4AddressLocation == null ? null : ipv4AddressLocation.getId() );
+
+				statement.setObject( 4, ipv4Test.getHttpStatusCode(), Types.INTEGER );
+				statement.setString( 5, ipv4Test.getMxAddress() );
+
+				final Location mxAddressLocation = ipv4Test.getMxAddressLocation();
+				statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
+
+				statement.setBoolean( 7, ipv4Test.hasWorkingSMTP() );
+				statement.executeUpdate();
+
+				try( final Statement pkStatement = connection.createStatement() )
+				{
+					final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
+					resultSet.next();
+					PK = resultSet.getInt( 1 );
+				}
 			}
 		}
 
 		return PK;
 	}
 
-	private static int insertIPv6Test( final IPv6Test ipv6Test ) throws SQLException
+	private static Integer insertIPv6Test( final IPv6Test ipv6Test ) throws SQLException
 	{
-		int PK;
+		Integer PK = null;
 
-		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + IPv6Tests.TABLE_NAME + "("
-				+ IPv6Tests.FIELD_ADDRESS + ","
-				+ IPv6Tests.FIELD_ADDRESS_PING + ","
-				+ IPv6Tests.FIELD_FK_ADDRESS_LOCATION_ID + ","
-				+ IPv6Tests.FIELD_HTTP_STATUS_CODE + ","
-				+ IPv6Tests.FIELD_MX_ADDRESS + ","
-				+ IPv6Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ","
-				+ IPv6Tests.FIELD_HAS_WORKING_SMTP
-				+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
-		) )
+		if( ipv6Test != null )
 		{
-			statement.setString( 1, ipv6Test.getAddress() );
-			statement.setObject( 2, ipv6Test.getPing() );
-
-			final Location ipv6AddressLocation = ipv6Test.getAddressLocation();
-			statement.setObject( 3, ipv6AddressLocation == null ? null : ipv6AddressLocation.getId() );
-
-			statement.setObject( 4, ipv6Test.getHttpStatusCode() );
-			statement.setString( 5, ipv6Test.getMxAddress() );
-
-			final Location mxAddressLocation = ipv6Test.getMxAddressLocation();
-			statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
-
-			statement.setBoolean( 7, ipv6Test.hasWorkingSMTP() );
-			statement.executeUpdate();
-
-			try( final Statement pkStatement = connection.createStatement() )
+			try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + IPv6Tests.TABLE_NAME + "("
+					+ IPv6Tests.FIELD_ADDRESS + ","
+					+ IPv6Tests.FIELD_ADDRESS_PING + ","
+					+ IPv6Tests.FIELD_FK_ADDRESS_LOCATION_ID + ","
+					+ IPv6Tests.FIELD_HTTP_STATUS_CODE + ","
+					+ IPv6Tests.FIELD_MX_ADDRESS + ","
+					+ IPv6Tests.FIELD_FK_MX_ADDRESS_LOCATION_ID + ","
+					+ IPv6Tests.FIELD_HAS_WORKING_SMTP
+					+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
+			) )
 			{
-				final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
-				resultSet.next();
-				PK = resultSet.getInt( 1 );
+				statement.setString( 1, ipv6Test.getAddress() );
+				statement.setObject( 2, ipv6Test.getPing(), Types.INTEGER );
+
+				final Location ipv6AddressLocation = ipv6Test.getAddressLocation();
+				statement.setObject( 3, ipv6AddressLocation == null ? null : ipv6AddressLocation.getId() );
+
+				statement.setObject( 4, ipv6Test.getHttpStatusCode() );
+				statement.setString( 5, ipv6Test.getMxAddress() );
+
+				final Location mxAddressLocation = ipv6Test.getMxAddressLocation();
+				statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
+
+				statement.setBoolean( 7, ipv6Test.hasWorkingSMTP() );
+				statement.executeUpdate();
+
+				try( final Statement pkStatement = connection.createStatement() )
+				{
+					final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
+					resultSet.next();
+					PK = resultSet.getInt( 1 );
+				}
 			}
 		}
 
