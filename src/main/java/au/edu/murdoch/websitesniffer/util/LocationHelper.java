@@ -17,44 +17,69 @@
 package au.edu.murdoch.websitesniffer.util;
 
 import au.edu.murdoch.websitesniffer.models.Location;
-import au.edu.murdoch.websitesniffer.models.json.LocationJson;
-import okhttp3.ResponseBody;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import com.maxmind.db.CHMCache;
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.InetAddress;
+import java.net.URL;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class LocationHelper
 {
-	private static final NetworkService NETWORK_SERVICE = new Retrofit.Builder()
-			.baseUrl( NetworkService.GEOIP_BASE_URL )
-			.addConverterFactory( GsonConverterFactory.create() )
-			.build()
-			.create( NetworkService.class );
+	private static DatabaseReader reader;
+
+	static
+	{
+		try
+		{
+			reader = new DatabaseReader.Builder( new File( "GeoLite2-City.mmdb" ) ).withCache( new CHMCache() ).build();
+		}
+		catch( final IOException e )
+		{
+			e.printStackTrace();
+		}
+	}
 
 	public static Location getLocationForHost()
 	{
-		return getLocationByIP( "" );
+		String ip = null;
+
+		try
+		{
+			final URL url = new URL( "http://checkip.amazonaws.com" );
+			try( final InputStream inputStream = url.openStream();
+				 final InputStreamReader inputStreamReader = new InputStreamReader( inputStream );
+				 final BufferedReader bufferedReader = new BufferedReader( inputStreamReader ) )
+			{
+				ip = bufferedReader.readLine();
+			}
+		}
+		catch( final IOException e )
+		{
+			e.printStackTrace();
+		}
+
+		return getLocationByIP( ip );
 	}
 
 	public static Location getLocationByIP( final String ip )
 	{
 		Location location = null;
 
-		try
+		if( ip != null )
 		{
-			final Response<LocationJson> response = NETWORK_SERVICE.getLocationByIP( ip ).execute();
-			if( response.isSuccessful() )
+			try
 			{
-				final LocationJson locationJson = response.body();
-				final String city = locationJson.getCity();
-				final String country = locationJson.getCountry();
-				final double latitude = locationJson.getLatitude();
-				final double longitude = locationJson.getLongitude();
+				final InetAddress address = InetAddress.getByName( ip );
+				final CityResponse response = reader.city( address );
+
+				final String city = response.getCity().getName();
+				final String country = response.getCountry().getName();
+				final double latitude = response.getLocation().getLatitude();
+				final double longitude = response.getLocation().getLongitude();
 
 				//If the location is already in the database, get its id
 				location = DatabaseHelper.getLocation( city, country );
@@ -65,17 +90,10 @@ public class LocationHelper
 					location = DatabaseHelper.getLocation( city, country );
 				}
 			}
-			else
+			catch( final IOException | SQLException | GeoIp2Exception e )
 			{
-				try( final ResponseBody errorBody = response.errorBody() )
-				{
-					Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, errorBody.string() );
-				}
+				e.printStackTrace();
 			}
-		}
-		catch( final IOException | SQLException ex )
-		{
-			Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 
 		return location;
