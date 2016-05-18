@@ -17,15 +17,16 @@
 package au.edu.murdoch.websitesniffer.models;
 
 import au.edu.murdoch.websitesniffer.util.LocationHelper;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public abstract class IPTest
 {
-	protected static final int MAX_REDIRECTS = 5;
+	static final int MAX_REDIRECTS = 5;
 
 	public enum Type
 	{
@@ -33,23 +34,25 @@ public abstract class IPTest
 		IPv6
 	}
 
-	protected final Domain mDomain;
-	protected boolean mHasTestedAddress;
-	protected String mAddress;
-	protected boolean mHasTestedPing;
-	protected Integer mPing;
-	protected boolean mHasTestedAddressLocation;
-	protected Location mAddressLocation;
-	protected boolean mHasTestedHttpStatusCode;
-	protected Integer mHttpStatusCode;
-	protected boolean mHasTestedMxAddress;
-	protected String mMxAddress;
-	protected boolean mHasTestedMxAddressLocation;
-	protected Location mMxAddressLocation;
-	protected boolean mHasTestedWorkingSMTP;
-	protected boolean mHasWorkingSMTP = false;
+	private boolean mHasTestedAddressLocation;
+	private Location mAddressLocation;
+	private boolean mHasTestedMxAddressLocation;
+	private Location mMxAddressLocation;
+	private boolean mHasTestedWorkingSMTP;
+	private boolean mHasWorkingSMTP = false;
 
-	public IPTest( final Domain domain )
+	final Domain mDomain;
+	boolean mHasTestedAddress;
+	String mAddress;
+	boolean mHasTestedPing;
+	Integer mPing;
+	boolean mHasTestedHttpStatusCode;
+	Integer mHttpStatusCode;
+	boolean mHasTestedMxAddress;
+	String mMxAddress;
+
+
+	IPTest( final Domain domain )
 	{
 		mDomain = domain;
 	}

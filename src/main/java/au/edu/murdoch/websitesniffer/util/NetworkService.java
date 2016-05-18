@@ -21,9 +21,9 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 
-public interface NetworkService
+interface NetworkService
 {
-	public static final String GEOIP_BASE_URL = "http://freegeoip.net/json/";
+	String GEOIP_BASE_URL = "http://freegeoip.net/json/";
 
 	@GET( "{ip}" )
 	Call<LocationJson> getLocationByIP( @Path( "ip" ) final String ip );

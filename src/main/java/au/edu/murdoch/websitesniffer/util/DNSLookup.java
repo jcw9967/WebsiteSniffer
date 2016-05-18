@@ -16,14 +16,9 @@
  */
 package au.edu.murdoch.websitesniffer.util;
 
+import org.xbill.DNS.*;
+
 import java.net.UnknownHostException;
-import org.xbill.DNS.AAAARecord;
-import org.xbill.DNS.ARecord;
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.MXRecord;
-import org.xbill.DNS.Record;
-import org.xbill.DNS.TextParseException;
-import org.xbill.DNS.Type;
 
 public class DNSLookup
 {

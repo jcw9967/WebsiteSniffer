@@ -17,16 +17,17 @@
 package au.edu.murdoch.websitesniffer.util;
 
 import au.edu.murdoch.websitesniffer.models.IPTest.Type;
-import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv4;
-import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv6;
+import org.apache.commons.lang3.SystemUtils;
+import org.xbill.DNS.TextParseException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import org.apache.commons.lang3.SystemUtils;
-import org.xbill.DNS.TextParseException;
+
+import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv4;
 
 public class Ping
 {
@@ -45,7 +46,7 @@ public class Ping
 		{
 			throw new NullPointerException();
 		}
-		
+
 		final ProcessBuilder builder = new ProcessBuilder();
 		if( SystemUtils.IS_OS_WINDOWS )
 		{
@@ -56,25 +57,25 @@ public class Ping
 			builder.command( ipType == IPv4 ? "ping" : "ping6", address, "-c", "4", "-W", "1" );
 		}
 		builder.redirectErrorStream( true );
-		
+
 		final Process process = builder.start();
-		
+
 		final int ping = processPing( process );
 		process.destroy();
-		
+
 		return ping;
 	}
-	
+
 	private static int processPing( final Process process ) throws IOException, TimeoutException
 	{
 		final List<String> pingOutput = readPingOutput( process );
 		return getMinimumPing( pingOutput );
 	}
-	
+
 	private static List<String> readPingOutput( final Process process ) throws IOException
 	{
 		final List<String> pingOutput = new ArrayList<>();
-		
+
 		try( final InputStreamReader inputStreamReader = new InputStreamReader( process.getInputStream() );
 			 final BufferedReader reader = new BufferedReader( inputStreamReader ) )
 		{
@@ -84,24 +85,24 @@ public class Ping
 				pingOutput.add( line );
 			}
 		}
-		
+
 		return pingOutput;
 	}
-	
-	private static int getMinimumPing( final List<String> pingOutput ) throws TextParseException, IOException, TimeoutException
+
+	private static int getMinimumPing( final List<String> pingOutput ) throws IOException, TimeoutException
 	{
 		int ping = 0;
-		
+
 		if( pingOutput.size() > 0 )
 		{
 			final String lastLine = pingOutput.get( pingOutput.size() - 1 );
-			
+
 			boolean failureParsing = false;
 			int index = lastLine.indexOf( '=' );
 			if( index != -1 )
 			{
 				index += 2;
-				
+
 				final int endIndex;
 				if( SystemUtils.IS_OS_WINDOWS )
 				{
@@ -111,7 +112,7 @@ public class Ping
 				{
 					endIndex = lastLine.indexOf( '/', index );
 				}
-				
+
 				if( endIndex != -1 )
 				{
 					ping = Math.round( Float.parseFloat( lastLine.substring( index, endIndex ) ) );
@@ -125,7 +126,7 @@ public class Ping
 			{
 				failureParsing = true;
 			}
-			
+
 			if( failureParsing )
 			{
 				throw new TextParseException();
@@ -135,7 +136,7 @@ public class Ping
 		{
 			throw new IOException();
 		}
-		
+
 		return ping;
 	}
 }

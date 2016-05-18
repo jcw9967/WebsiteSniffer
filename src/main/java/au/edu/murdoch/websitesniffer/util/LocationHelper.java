@@ -18,24 +18,24 @@ package au.edu.murdoch.websitesniffer.util;
 
 import au.edu.murdoch.websitesniffer.models.Location;
 import au.edu.murdoch.websitesniffer.models.json.LocationJson;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import okhttp3.ResponseBody;
-import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class LocationHelper
 {
 	private static final NetworkService NETWORK_SERVICE = new Retrofit.Builder()
-					.baseUrl( NetworkService.GEOIP_BASE_URL )
-					.addConverterFactory( GsonConverterFactory.create() )
-					.build()
-					.create( NetworkService.class );
-	
+			.baseUrl( NetworkService.GEOIP_BASE_URL )
+			.addConverterFactory( GsonConverterFactory.create() )
+			.build()
+			.create( NetworkService.class );
+
 	public static Location getLocationForHost()
 	{
 		return getLocationByIP( "" );

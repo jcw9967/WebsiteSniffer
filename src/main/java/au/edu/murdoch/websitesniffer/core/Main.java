@@ -17,16 +17,14 @@
 package au.edu.murdoch.websitesniffer.core;
 
 import au.edu.murdoch.websitesniffer.gui.MainFrame;
-import au.edu.murdoch.websitesniffer.models.Domain;
-import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv6;
-import au.edu.murdoch.websitesniffer.models.IPv4Test;
-import au.edu.murdoch.websitesniffer.models.IPv6Test;
-import au.edu.murdoch.websitesniffer.models.Location;
-import au.edu.murdoch.websitesniffer.models.Test;
+import au.edu.murdoch.websitesniffer.models.*;
 import au.edu.murdoch.websitesniffer.util.DatabaseHelper;
 import au.edu.murdoch.websitesniffer.util.LocationHelper;
 import au.edu.murdoch.websitesniffer.util.Ping;
 import au.edu.murdoch.websitesniffer.util.SSLUtilities;
+import org.apache.commons.cli.*;
+
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -41,14 +39,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+
+import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv6;
 
 public class Main
 {
@@ -149,7 +141,7 @@ public class Main
 		}
 	}
 
-	public static void CLI()
+	private static void CLI()
 	{
 		try
 		{
@@ -212,6 +204,7 @@ public class Main
 				}
 				catch( final InterruptedException e )
 				{
+					e.printStackTrace();
 				}
 			}
 			else

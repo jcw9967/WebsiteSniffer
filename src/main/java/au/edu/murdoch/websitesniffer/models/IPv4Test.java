@@ -18,6 +18,8 @@ package au.edu.murdoch.websitesniffer.models;
 
 import au.edu.murdoch.websitesniffer.util.DNSLookup;
 import au.edu.murdoch.websitesniffer.util.Ping;
+import org.xbill.DNS.TextParseException;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -25,7 +27,6 @@ import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.xbill.DNS.TextParseException;
 
 public class IPv4Test extends IPTest
 {

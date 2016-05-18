@@ -1,0 +1,21 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="WebsiteSniffer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/WebsiteSniffer_jar</output-path>
+    <root id="archive" name="WebsiteSniffer.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="WebsiteSniffer" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.4/5fe28b9518e58819180a43a850fbc0dd24b7c050/commons-lang3-3.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-cli/commons-cli/1.3.1/1303efbc4b181e5a58bf2e967dc156a3132b97c0/commons-cli-1.3.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.6.2/f1bc476cc167b18e66c297df599b2377131a8947/gson-2.6.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.okio/okio/1.6.0/98476622f10715998eacf9240d6b479f12c66143/okio-1.6.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/dnsjava/dnsjava/2.1.7/a1ed0a251d22bf528cebfafb94c55e6f3f339cf/dnsjava-2.1.7.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.retrofit2/retrofit/2.0.2/43eeae0b9fb087bb3194ba59ab63a38a32fbf3e/retrofit-2.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.retrofit2/converter-gson/2.0.2/f8d87f15b94b8d74e7ccf61d7eedb558811cdb30/converter-gson-2.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-net/commons-net/3.5/342fc284019f590e1308056990fdb24a08f06318/commons-net-3.5.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.xerial/sqlite-jdbc/3.8.11.2/dec208cba8debb0a8b9204b08d8d887d63041f0f/sqlite-jdbc-3.8.11.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/3.2.0/f7873a2ebde246a45c2a8d6f3247108b4c88a879/okhttp-3.2.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

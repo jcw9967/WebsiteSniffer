@@ -16,18 +16,9 @@
  */
 package au.edu.murdoch.websitesniffer.util;
 
-import au.edu.murdoch.websitesniffer.models.Domain;
-import au.edu.murdoch.websitesniffer.models.IPv4Test;
-import au.edu.murdoch.websitesniffer.models.IPv6Test;
-import au.edu.murdoch.websitesniffer.models.Location;
-import au.edu.murdoch.websitesniffer.models.Test;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
+import au.edu.murdoch.websitesniffer.models.*;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -90,11 +81,14 @@ public class DatabaseHelper
 		}
 	}
 
-	public static Location getLocation( final String city, final String country ) throws SQLException
+	static Location getLocation( final String city, final String country ) throws SQLException
 	{
 		Location location = null;
 
-		try( final PreparedStatement statement = connection.prepareStatement( "SELECT * FROM " + Locations.TABLE_NAME + " WHERE "
+		try( final PreparedStatement statement = connection.prepareStatement( "SELECT " + Locations.FIELD_ID + ","
+				+ Locations.FIELD_CITY + ","
+				+ Locations.FIELD_COUNTRY + " FROM "
+				+ Locations.TABLE_NAME + " WHERE "
 				+ Locations.FIELD_CITY + "=? AND "
 				+ Locations.FIELD_COUNTRY + "=? LIMIT 1"
 		) )
@@ -109,10 +103,8 @@ public class DatabaseHelper
 					final int rId = resultSet.getInt( 1 );
 					final String rCity = resultSet.getString( 2 );
 					final String rCountry = resultSet.getString( 3 );
-					final double rLatitude = resultSet.getDouble( 4 );
-					final double rLongitude = resultSet.getDouble( 5 );
 
-					location = new Location( rId, rCity, rCountry, rLatitude, rLongitude );
+					location = new Location( rId, rCity, rCountry );
 				}
 			}
 		}
@@ -120,7 +112,7 @@ public class DatabaseHelper
 		return location;
 	}
 
-	public static void insertLocation( final String city, final String country, final double latitude, final double longitude ) throws SQLException
+	static void insertLocation( final String city, final String country, final double latitude, final double longitude ) throws SQLException
 	{
 
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Locations.TABLE_NAME + "("
@@ -189,7 +181,7 @@ public class DatabaseHelper
 	private static Integer insertIPv4Test( final IPv4Test ipv4Test ) throws SQLException
 	{
 		Integer PK = null;
-		
+
 		if( ipv4Test != null )
 		{
 			try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + IPv4Tests.TABLE_NAME + "("
@@ -219,7 +211,7 @@ public class DatabaseHelper
 				statement.executeUpdate();
 
 				try( final Statement pkStatement = connection.createStatement();
-						final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ))
+					 final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ) )
 				{
 					resultSet.next();
 					PK = resultSet.getInt( 1 );
@@ -263,7 +255,7 @@ public class DatabaseHelper
 				statement.executeUpdate();
 
 				try( final Statement pkStatement = connection.createStatement();
-						final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ) )
+					 final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ) )
 				{
 					resultSet.next();
 					PK = resultSet.getInt( 1 );
@@ -361,7 +353,7 @@ public class DatabaseHelper
 		}
 	}
 
-	public static enum Domains
+	private enum Domains
 	{
 		TABLE_NAME( "Domains" ),
 		FIELD_ID( "DomainID" ),
@@ -369,7 +361,7 @@ public class DatabaseHelper
 
 		private final String mField;
 
-		private Domains( final String field )
+		Domains( final String field )
 		{
 			mField = field;
 		}
@@ -381,7 +373,7 @@ public class DatabaseHelper
 		}
 	}
 
-	public static enum Locations
+	private enum Locations
 	{
 		TABLE_NAME( "Locations" ),
 		FIELD_ID( "LocationID" ),
@@ -392,7 +384,7 @@ public class DatabaseHelper
 
 		private final String mField;
 
-		private Locations( final String field )
+		Locations( final String field )
 		{
 			mField = field;
 		}
@@ -404,7 +396,7 @@ public class DatabaseHelper
 		}
 	}
 
-	public static enum Tests
+	private enum Tests
 	{
 		TABLE_NAME( "Tests" ),
 		FIELD_FK_DOMAIN_ID( "FK_DomainID" ),
@@ -416,7 +408,7 @@ public class DatabaseHelper
 
 		private final String mField;
 
-		private Tests( final String field )
+		Tests( final String field )
 		{
 			mField = field;
 		}
@@ -428,7 +420,7 @@ public class DatabaseHelper
 		}
 	}
 
-	public static enum IPv4Tests
+	private enum IPv4Tests
 	{
 		TABLE_NAME( "IPv4Tests" ),
 		FIELD_ID( "IPv4TestID" ),
@@ -442,7 +434,7 @@ public class DatabaseHelper
 
 		private final String mField;
 
-		private IPv4Tests( final String field )
+		IPv4Tests( final String field )
 		{
 			mField = field;
 		}
@@ -454,7 +446,7 @@ public class DatabaseHelper
 		}
 	}
 
-	public static enum IPv6Tests
+	private enum IPv6Tests
 	{
 		TABLE_NAME( "IPv6Tests" ),
 		FIELD_ID( "IPv6TestID" ),
@@ -468,7 +460,7 @@ public class DatabaseHelper
 
 		private final String mField;
 
-		private IPv6Tests( final String field )
+		IPv6Tests( final String field )
 		{
 			mField = field;
 		}

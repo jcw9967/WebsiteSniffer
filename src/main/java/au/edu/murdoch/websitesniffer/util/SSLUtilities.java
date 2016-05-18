@@ -16,14 +16,10 @@
  */
 package au.edu.murdoch.websitesniffer.util;
 
+import javax.net.ssl.*;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 /**
  * This class provide various static methods that relax X509 certificate and
@@ -68,9 +64,9 @@ public final class SSLUtilities
 		if( _trustManagers == null )
 		{
 			_trustManagers = new TrustManager[]
-			{
-				new SSLUtilities.FakeX509TrustManager()
-			};
+					{
+							new SSLUtilities.FakeX509TrustManager()
+					};
 		}
 		// Install the all-trusting trust manager:
 		try
@@ -110,7 +106,7 @@ public final class SSLUtilities
 	 *
 	 * @author Jiramot.info
 	 */
-	public static class FakeHostnameVerifier implements HostnameVerifier
+	private static class FakeHostnameVerifier implements HostnameVerifier
 	{
 
 		/**
@@ -134,14 +130,14 @@ public final class SSLUtilities
 	 *
 	 * @author Jiramot.info
 	 */
-	public static class FakeX509TrustManager implements X509TrustManager
+	private static class FakeX509TrustManager implements X509TrustManager
 	{
 		/**
 		 * Empty array of certificate authority certificates.
 		 */
 		private static final X509Certificate[] _AcceptedIssuers = new X509Certificate[]
-		{
-		};
+				{
+				};
 
 		/**
 		 * Always trust for client SSL chain peer certificate chain with any
