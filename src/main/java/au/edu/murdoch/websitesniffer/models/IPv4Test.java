@@ -47,7 +47,7 @@ public class IPv4Test extends IPTest
 			}
 			catch( final UnknownHostException | TextParseException ex )
 			{
-				Logger.getLogger( IPv4Test.class.getName() ).log( Level.INFO, ex.getMessage() );
+				Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, ex.getMessage() );
 			}
 		}
 
@@ -88,7 +88,7 @@ public class IPv4Test extends IPTest
 				}
 				catch( final IOException ex )
 				{
-					Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, ex.getMessage() );
+					Logger.getLogger( IPTest.class.getName() ).log( Level.SEVERE, ex.getMessage() );
 				}
 			}
 		}
@@ -110,7 +110,7 @@ public class IPv4Test extends IPTest
 			}
 			catch( final UnknownHostException | TextParseException ex )
 			{
-				Logger.getLogger( IPv4Test.class.getName() ).log( Level.INFO, ex.getMessage() );
+				Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, ex.getMessage() );
 			}
 		}
 
@@ -132,7 +132,7 @@ public class IPv4Test extends IPTest
 				}
 				catch( final TimeoutException | IOException ex )
 				{
-					Logger.getLogger( IPv4Test.class.getName() ).log( Level.INFO, "Failed to retrieve ping for " + mDomain.getUrl() + " (" + mAddress + "):\n" + ex.getMessage() );
+					Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, "Failed to retrieve ping for " + mDomain.getUrl() + " (" + mAddress + "):\n" + ex.getMessage() );
 				}
 			}
 		}
