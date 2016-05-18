@@ -17,11 +17,7 @@
 package au.edu.murdoch.websitesniffer.models;
 
 import au.edu.murdoch.websitesniffer.util.LocationHelper;
-import au.edu.murdoch.websitesniffer.util.Ping;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.net.smtp.SMTPClient;
@@ -29,7 +25,7 @@ import org.apache.commons.net.smtp.SMTPReply;
 
 public abstract class IPTest
 {
-	private static final int MAX_REDIRECTS = 5;
+	protected static final int MAX_REDIRECTS = 5;
 
 	public enum Type
 	{
@@ -73,46 +69,7 @@ public abstract class IPTest
 		return mAddressLocation;
 	}
 
-	public Integer getHttpStatusCode()
-	{
-		if( mHasTestedAddress && !mHasTestedHttpStatusCode )
-		{
-			mHasTestedHttpStatusCode = true;
-
-			if( mAddress != null )
-			{
-				try
-				{
-					final URL url = new URL( "http://" + mAddress );
-					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-					connection.connect();
-
-					mHttpStatusCode = connection.getResponseCode();
-
-					int redirectCount = 0;
-					while( mHttpStatusCode >= 300
-							&& mHttpStatusCode <= 308
-							&& redirectCount < MAX_REDIRECTS )
-					{
-						//Follow redirect
-						++redirectCount;
-						final String locationUrl = connection.getHeaderField( "Location" );
-						final URL redirectUrl = new URL( locationUrl );
-						connection = (HttpURLConnection) redirectUrl.openConnection();
-						connection.connect();
-
-						mHttpStatusCode = connection.getResponseCode();
-					}
-				}
-				catch( final IOException ex )
-				{
-					Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, ex.getMessage() );
-				}
-			}
-		}
-
-		return mHttpStatusCode;
-	}
+	public abstract Integer getHttpStatusCode();
 
 	public Location getMxAddressLocation()
 	{

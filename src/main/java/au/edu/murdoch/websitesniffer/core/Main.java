@@ -38,6 +38,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
@@ -73,7 +74,7 @@ public class Main
 				.longOpt( "threads" )
 				.hasArg()
 				.argName( "COUNT" )
-				.desc( "Specify the number of concurrent threads to use" )
+				.desc( "Specify the number of concurrent threads to use. Default = 50." )
 				.build()
 		);
 		options.addOption( "h", "help", false, "Display this help menu" );
@@ -92,12 +93,24 @@ public class Main
 				{
 					final File file = new File( cli.getOptionValue( "urlfile" ) );
 					System.out.println( "Reading URLs from " + file.getAbsolutePath() + "..." );
-					Main.addUrlsFromFile( file );
+					try
+					{
+						Main.addUrlsFromFile( file );
+					}
+					catch( final SQLException | IOException ex )
+					{
+						Logger.getLogger( Main.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+						return;
+					}
 				}
 
 				if( cli.hasOption( "t" ) )
 				{
 					mThreadCount = Integer.parseInt( cli.getOptionValue( "t" ) );
+					if( mThreadCount <= 0 )
+					{
+						return;
+					}
 				}
 
 				System.out.println( "Determining if IPv6 is available..." );
@@ -219,7 +232,7 @@ public class Main
 			//If we can't ping via ipv6, prevent it
 			Ping.ping( "google.com", IPv6 );
 		}
-		catch( final IOException ex )
+		catch( final TimeoutException | IOException ex )
 		{
 			return false;
 		}
@@ -227,7 +240,7 @@ public class Main
 		return true;
 	}
 
-	public static void addUrlsFromFile( final File file )
+	public static void addUrlsFromFile( final File file ) throws IOException, SQLException
 	{
 		try( final FileReader fileReader = new FileReader( file );
 			 final BufferedReader reader = new BufferedReader( fileReader ) )
@@ -241,10 +254,6 @@ public class Main
 			}
 
 			DatabaseHelper.insertDomains( domains );
-		}
-		catch( final IOException | SQLException ex )
-		{
-			Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 	}
 }

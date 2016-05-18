@@ -30,6 +30,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LocationHelper
 {
+	private static final NetworkService NETWORK_SERVICE = new Retrofit.Builder()
+					.baseUrl( NetworkService.GEOIP_BASE_URL )
+					.addConverterFactory( GsonConverterFactory.create() )
+					.build()
+					.create( NetworkService.class );
+	
 	public static Location getLocationForHost()
 	{
 		return getLocationByIP( "" );
@@ -41,14 +47,7 @@ public class LocationHelper
 
 		try
 		{
-			final NetworkService networkService = new Retrofit.Builder()
-					.baseUrl( NetworkService.GEOIP_BASE_URL )
-					.addConverterFactory( GsonConverterFactory.create() )
-					.build()
-					.create( NetworkService.class );
-
-			final Call<LocationJson> call = networkService.getLocationByIP( ip );
-			final Response<LocationJson> response = call.execute();
+			final Response<LocationJson> response = NETWORK_SERVICE.getLocationByIP( ip ).execute();
 			if( response.isSuccessful() )
 			{
 				final LocationJson locationJson = response.body();

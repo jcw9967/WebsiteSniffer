@@ -17,12 +17,14 @@
 package au.edu.murdoch.websitesniffer.util;
 
 import au.edu.murdoch.websitesniffer.models.IPTest.Type;
+import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv4;
 import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv6;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.SystemUtils;
 import org.xbill.DNS.TextParseException;
 
@@ -31,42 +33,48 @@ public class Ping
 	/**
 	 * Ping a given URL using a given ping method.
 	 *
-	 * @param url    the String value of the URL or IP address to ping
-	 * @param ipType the {@link Type} of IP to ping with
+	 * @param address the String value of the URL or IP address to ping
+	 * @param ipType  the {@link Type} of IP to ping with
 	 * @return the int value of the number of milliseconds passed to receive a reply
 	 *
 	 * @throws IOException
 	 */
-	public static int ping( final String url, final Type ipType ) throws IOException
+	public static int ping( final String address, final Type ipType ) throws IOException, TimeoutException
 	{
-		if( url == null )
+		if( address == null )
 		{
 			throw new NullPointerException();
 		}
-
-		final Process process;
+		
+		final ProcessBuilder builder = new ProcessBuilder();
 		if( SystemUtils.IS_OS_WINDOWS )
 		{
-			process = new ProcessBuilder( "ping", ipType == IPv6 ? "-6" : "-4", url ).start();
+			builder.command( "ping", ipType == IPv4 ? "-4" : "-6", address );
 		}
 		else
 		{
-			process = new ProcessBuilder( ipType == IPv6 ? "ping" : "ping6", url, "-c", "4" ).start();
+			builder.command( ipType == IPv4 ? "ping" : "ping6", address, "-c", "4", "-W", "1" );
 		}
-
-		return processPing( process );
+		builder.redirectErrorStream( true );
+		
+		final Process process = builder.start();
+		
+		final int ping = processPing( process );
+		process.destroy();
+		
+		return ping;
 	}
-
-	private static int processPing( final Process process ) throws IOException
+	
+	private static int processPing( final Process process ) throws IOException, TimeoutException
 	{
 		final List<String> pingOutput = readPingOutput( process );
 		return getMinimumPing( pingOutput );
 	}
-
+	
 	private static List<String> readPingOutput( final Process process ) throws IOException
 	{
 		final List<String> pingOutput = new ArrayList<>();
-
+		
 		try( final InputStreamReader inputStreamReader = new InputStreamReader( process.getInputStream() );
 			 final BufferedReader reader = new BufferedReader( inputStreamReader ) )
 		{
@@ -76,42 +84,58 @@ public class Ping
 				pingOutput.add( line );
 			}
 		}
-
+		
 		return pingOutput;
 	}
-
-	private static int getMinimumPing( final List<String> pingOutput ) throws TextParseException
+	
+	private static int getMinimumPing( final List<String> pingOutput ) throws TextParseException, IOException, TimeoutException
 	{
-		final String lastLine = pingOutput.get( pingOutput.size() - 1 );
-		int index = lastLine.indexOf( '=' );
-
-		if( index != -1 )
+		int ping = 0;
+		
+		if( pingOutput.size() > 0 )
 		{
-			index += 2;
-
-			final int endIndex;
-			if( SystemUtils.IS_OS_WINDOWS )
+			final String lastLine = pingOutput.get( pingOutput.size() - 1 );
+			
+			boolean failureParsing = false;
+			int index = lastLine.indexOf( '=' );
+			if( index != -1 )
 			{
-				endIndex = lastLine.indexOf( 'm', index );
+				index += 2;
+				
+				final int endIndex;
+				if( SystemUtils.IS_OS_WINDOWS )
+				{
+					endIndex = lastLine.indexOf( 'm', index );
+				}
+				else
+				{
+					endIndex = lastLine.indexOf( '/', index );
+				}
+				
+				if( endIndex != -1 )
+				{
+					ping = Math.round( Float.parseFloat( lastLine.substring( index, endIndex ) ) );
+				}
+				else
+				{
+					failureParsing = true;
+				}
 			}
 			else
 			{
-				endIndex = lastLine.indexOf( '/', index );
+				failureParsing = true;
 			}
-
-			if( endIndex != -1 )
+			
+			if( failureParsing )
 			{
-				final float ping = Float.parseFloat( lastLine.substring( index, endIndex ) );
-				return (int) ping;
-			}
-			else
-			{
-				throw new TextParseException( "Failed to find end index of minimum ping" );
+				throw new TextParseException();
 			}
 		}
 		else
 		{
-			throw new TextParseException( "Couldn't find '=' in last line of ping!" );
+			throw new IOException();
 		}
+		
+		return ping;
 	}
 }

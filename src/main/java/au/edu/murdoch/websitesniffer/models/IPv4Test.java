@@ -19,7 +19,10 @@ package au.edu.murdoch.websitesniffer.models;
 import au.edu.murdoch.websitesniffer.util.DNSLookup;
 import au.edu.murdoch.websitesniffer.util.Ping;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.xbill.DNS.TextParseException;
@@ -49,6 +52,48 @@ public class IPv4Test extends IPTest
 		}
 
 		return mAddress;
+	}
+
+	@Override
+	public Integer getHttpStatusCode()
+	{
+		if( mHasTestedAddress && !mHasTestedHttpStatusCode )
+		{
+			mHasTestedHttpStatusCode = true;
+
+			if( mAddress != null )
+			{
+				try
+				{
+					final URL url = new URL( "http://" + mAddress );
+					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+					connection.connect();
+
+					mHttpStatusCode = connection.getResponseCode();
+
+					int redirectCount = 0;
+					while( mHttpStatusCode >= 300
+							&& mHttpStatusCode <= 308
+							&& redirectCount < MAX_REDIRECTS )
+					{
+						//Follow redirect
+						++redirectCount;
+						final String locationUrl = connection.getHeaderField( "Location" );
+						final URL redirectUrl = new URL( locationUrl );
+						connection = (HttpURLConnection) redirectUrl.openConnection();
+						connection.connect();
+
+						mHttpStatusCode = connection.getResponseCode();
+					}
+				}
+				catch( final IOException ex )
+				{
+					Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, ex.getMessage() );
+				}
+			}
+		}
+
+		return mHttpStatusCode;
 	}
 
 	@Override
@@ -85,7 +130,7 @@ public class IPv4Test extends IPTest
 				{
 					mPing = Ping.ping( mAddress, Type.IPv4 );
 				}
-				catch( final IOException ex )
+				catch( final TimeoutException | IOException ex )
 				{
 					Logger.getLogger( IPv4Test.class.getName() ).log( Level.INFO, "Failed to retrieve ping for " + mDomain.getUrl() + " (" + mAddress + "):\n" + ex.getMessage() );
 				}
