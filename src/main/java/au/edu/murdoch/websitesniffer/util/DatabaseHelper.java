@@ -102,16 +102,18 @@ public class DatabaseHelper
 			statement.setString( 1, city );
 			statement.setString( 2, country );
 
-			final ResultSet resultSet = statement.executeQuery();
-			if( resultSet.next() )
+			try( final ResultSet resultSet = statement.executeQuery() )
 			{
-				final int rId = resultSet.getInt( 1 );
-				final String rCity = resultSet.getString( 2 );
-				final String rCountry = resultSet.getString( 3 );
-				final double rLatitude = resultSet.getDouble( 4 );
-				final double rLongitude = resultSet.getDouble( 5 );
+				if( resultSet.next() )
+				{
+					final int rId = resultSet.getInt( 1 );
+					final String rCity = resultSet.getString( 2 );
+					final String rCountry = resultSet.getString( 3 );
+					final double rLatitude = resultSet.getDouble( 4 );
+					final double rLongitude = resultSet.getDouble( 5 );
 
-				location = new Location( rId, rCity, rCountry, rLatitude, rLongitude );
+					location = new Location( rId, rCity, rCountry, rLatitude, rLongitude );
+				}
 			}
 		}
 
@@ -147,9 +149,11 @@ public class DatabaseHelper
 		{
 			statement.setInt( 1, domainID );
 
-			final ResultSet resultSet = statement.executeQuery();
-			resultSet.next();
-			nextTestNumber = resultSet.getInt( 1 );
+			try( final ResultSet resultSet = statement.executeQuery() )
+			{
+				resultSet.next();
+				nextTestNumber = resultSet.getInt( 1 );
+			}
 		}
 
 		return nextTestNumber;
@@ -167,16 +171,16 @@ public class DatabaseHelper
 				+ ") VALUES ( ?, ?, ?, ?, ?, ? )"
 		) )
 		{
-			statement.setObject( 1, test.getDomain().getId(), Types.INTEGER );
-			statement.setObject( 2, getNextTestNumber( test.getDomain().getId() ), Types.INTEGER );
-			statement.setObject( 3, test.getTimestamp(), Types.INTEGER );
-			statement.setObject( 4, test.getUserLocation().getId(), Types.INTEGER );
+			statement.setObject( 1, test.getDomain().getId() );
+			statement.setObject( 2, getNextTestNumber( test.getDomain().getId() ) );
+			statement.setObject( 3, test.getTimestamp() );
+			statement.setObject( 4, test.getUserLocation().getId() );
 
 			final Integer ipv4TestPK = insertIPv4Test( test.getIPv4Test() );
-			statement.setObject( 5, ipv4TestPK, Types.INTEGER );
+			statement.setObject( 5, ipv4TestPK );
 
 			final Integer ipv6TestPK = insertIPv6Test( test.getIPv6Test() );
-			statement.setObject( 6, ipv6TestPK, Types.INTEGER );
+			statement.setObject( 6, ipv6TestPK );
 
 			statement.executeUpdate();
 		}
@@ -200,12 +204,12 @@ public class DatabaseHelper
 			) )
 			{
 				statement.setString( 1, ipv4Test.getAddress() );
-				statement.setObject( 2, ipv4Test.getPing(), Types.INTEGER );
+				statement.setObject( 2, ipv4Test.getPing() );
 
 				final Location ipv4AddressLocation = ipv4Test.getAddressLocation();
 				statement.setObject( 3, ipv4AddressLocation == null ? null : ipv4AddressLocation.getId() );
 
-				statement.setObject( 4, ipv4Test.getHttpStatusCode(), Types.INTEGER );
+				statement.setObject( 4, ipv4Test.getHttpStatusCode() );
 				statement.setString( 5, ipv4Test.getMxAddress() );
 
 				final Location mxAddressLocation = ipv4Test.getMxAddressLocation();
@@ -214,9 +218,9 @@ public class DatabaseHelper
 				statement.setBoolean( 7, ipv4Test.hasWorkingSMTP() );
 				statement.executeUpdate();
 
-				try( final Statement pkStatement = connection.createStatement() )
+				try( final Statement pkStatement = connection.createStatement();
+						final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ))
 				{
-					final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
 					resultSet.next();
 					PK = resultSet.getInt( 1 );
 				}
@@ -244,7 +248,7 @@ public class DatabaseHelper
 			) )
 			{
 				statement.setString( 1, ipv6Test.getAddress() );
-				statement.setObject( 2, ipv6Test.getPing(), Types.INTEGER );
+				statement.setObject( 2, ipv6Test.getPing() );
 
 				final Location ipv6AddressLocation = ipv6Test.getAddressLocation();
 				statement.setObject( 3, ipv6AddressLocation == null ? null : ipv6AddressLocation.getId() );
@@ -258,9 +262,9 @@ public class DatabaseHelper
 				statement.setBoolean( 7, ipv6Test.hasWorkingSMTP() );
 				statement.executeUpdate();
 
-				try( final Statement pkStatement = connection.createStatement() )
+				try( final Statement pkStatement = connection.createStatement();
+						final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ) )
 				{
-					final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" );
 					resultSet.next();
 					PK = resultSet.getInt( 1 );
 				}
