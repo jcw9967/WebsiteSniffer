@@ -1,5 +1,26 @@
-package util;
+/* 
+ * Copyright (C) 2016 Jordan
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package au.edu.murdoch.websitesniffer.util;
 
+import au.edu.murdoch.websitesniffer.models.Domain;
+import au.edu.murdoch.websitesniffer.models.IPv4Test;
+import au.edu.murdoch.websitesniffer.models.IPv6Test;
+import au.edu.murdoch.websitesniffer.models.Location;
+import au.edu.murdoch.websitesniffer.models.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,11 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import models.Domain;
-import models.IPv4Test;
-import models.IPv6Test;
-import models.Location;
-import models.Test;
 
 public class DatabaseHelper
 {
@@ -34,40 +50,13 @@ public class DatabaseHelper
 		}
 	}
 
-	public static int count( final String tableName, final String whereStatement ) throws SQLException
-	{
-		int count;
-
-		try( final Statement statement = connection.createStatement() )
-		{
-			final String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + whereStatement;
-
-			final ResultSet resultSet = statement.executeQuery( query );
-			if( resultSet.next() );
-			{
-				count = resultSet.getInt( 1 );
-			}
-		}
-
-		return count;
-	}
-
-	public static void customUpdate( final String update ) throws SQLException
-	{
-		try( final Statement statement = connection.createStatement() )
-		{
-			statement.executeUpdate( update );
-		}
-	}
-
 	public static List<Domain> getAllDomains() throws SQLException
 	{
-		final List<Domain> domains;
+		final List<Domain> domains = new ArrayList<>();
 
 		try( final Statement statement = connection.createStatement();
 			 final ResultSet resultSet = statement.executeQuery( "SELECT * FROM " + Domains.TABLE_NAME ) )
 		{
-			domains = new ArrayList<>();
 			while( resultSet.next() )
 			{
 				final int id = resultSet.getInt( 1 );
@@ -84,16 +73,17 @@ public class DatabaseHelper
 	public static void insertDomains( final List<String> domains ) throws SQLException
 	{
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Domains.TABLE_NAME + "("
-					 + Domains.FIELD_URL
-					 + ") VALUES ( ? )"
-			 ) )
+				+ Domains.FIELD_URL
+				+ ") VALUES ( ? )"
+		) )
 		{
-			connection.setAutoCommit( false );
 			for( final String domain : domains )
 			{
 				statement.setString( 1, domain );
 				statement.addBatch();
 			}
+
+			connection.setAutoCommit( false );
 			statement.executeBatch();
 			connection.setAutoCommit( true );
 		}
@@ -104,9 +94,9 @@ public class DatabaseHelper
 		Location location = null;
 
 		try( final PreparedStatement statement = connection.prepareStatement( "SELECT * FROM " + Locations.TABLE_NAME + " WHERE "
-					 + Locations.FIELD_CITY + "=? AND "
-					 + Locations.FIELD_COUNTRY + "=? LIMIT 1"
-			 ) )
+				+ Locations.FIELD_CITY + "=? AND "
+				+ Locations.FIELD_COUNTRY + "=? LIMIT 1"
+		) )
 		{
 			statement.setString( 1, city );
 			statement.setString( 2, country );
@@ -131,12 +121,12 @@ public class DatabaseHelper
 	{
 
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Locations.TABLE_NAME + "("
-					 + Locations.FIELD_CITY + ","
-					 + Locations.FIELD_COUNTRY + ","
-					 + Locations.FIELD_LATITUDE + ","
-					 + Locations.FIELD_LONGITUDE
-					 + ") VALUES ( ?, ?, ?, ? )"
-			 ) )
+				+ Locations.FIELD_CITY + ","
+				+ Locations.FIELD_COUNTRY + ","
+				+ Locations.FIELD_LATITUDE + ","
+				+ Locations.FIELD_LONGITUDE
+				+ ") VALUES ( ?, ?, ?, ? )"
+		) )
 		{
 			statement.setString( 1, city );
 			statement.setString( 2, country );
@@ -151,14 +141,13 @@ public class DatabaseHelper
 		int nextTestNumber;
 
 		try( final PreparedStatement statement = connection.prepareStatement( "SELECT COALESCE( MAX( " + Tests.FIELD_TEST_NUMBER + " ), 0 ) + 1 FROM " + Tests.TABLE_NAME + " WHERE "
-					 + Tests.FIELD_FK_DOMAIN_ID + "=?"
-			 ) )
+				+ Tests.FIELD_FK_DOMAIN_ID + "=?"
+		) )
 		{
 			statement.setInt( 1, domainID );
 
 			final ResultSet resultSet = statement.executeQuery();
 			resultSet.next();
-
 			nextTestNumber = resultSet.getInt( 1 );
 		}
 
@@ -168,14 +157,14 @@ public class DatabaseHelper
 	public static void insertTest( final Test test ) throws SQLException
 	{
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Tests.TABLE_NAME + "("
-					 + Tests.FIELD_FK_DOMAIN_ID + ","
-					 + Tests.FIELD_TEST_NUMBER + ","
-					 + Tests.FIELD_TIMESTAMP + ","
-					 + Tests.FIELD_FK_LOCATION_ID + ","
-					 + Tests.FIELD_FK_IPV4_TEST_ID + ","
-					 + Tests.FIELD_FK_IPV6_TEST_ID
-					 + ") VALUES ( ?, ?, ?, ?, ?, ? )"
-			 ) )
+				+ Tests.FIELD_FK_DOMAIN_ID + ","
+				+ Tests.FIELD_TEST_NUMBER + ","
+				+ Tests.FIELD_TIMESTAMP + ","
+				+ Tests.FIELD_FK_LOCATION_ID + ","
+				+ Tests.FIELD_FK_IPV4_TEST_ID + ","
+				+ Tests.FIELD_FK_IPV6_TEST_ID
+				+ ") VALUES ( ?, ?, ?, ?, ?, ? )"
+		) )
 		{
 			statement.setInt( 1, test.getDomain().getId() );
 			statement.setInt( 2, getNextTestNumber( test.getDomain().getId() ) );
@@ -294,7 +283,6 @@ public class DatabaseHelper
 	{
 		try( final Statement statement = connection.createStatement() )
 		{
-			connection.setAutoCommit( false );
 			statement.addBatch( "CREATE TABLE IF NOT EXISTS " + Domains.TABLE_NAME + "("
 					+ Domains.FIELD_ID + " INTEGER,"
 					+ Domains.FIELD_URL + " TEXT NOT NULL,"
@@ -355,6 +343,7 @@ public class DatabaseHelper
 					+ ")"
 			);
 
+			connection.setAutoCommit( false );
 			statement.executeBatch();
 			connection.setAutoCommit( true );
 		}

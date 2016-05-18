@@ -1,5 +1,23 @@
-package models;
+/* 
+ * Copyright (C) 2016 Jordan
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package au.edu.murdoch.websitesniffer.models;
 
+import au.edu.murdoch.websitesniffer.util.LocationHelper;
+import au.edu.murdoch.websitesniffer.util.Ping;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -8,8 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
-import util.LocationHelper;
-import util.Ping;
 
 public abstract class IPTest
 {
@@ -57,28 +73,6 @@ public abstract class IPTest
 		return mAddressLocation;
 	}
 
-	public Integer getPing()
-	{
-		if( mHasTestedAddress && !mHasTestedPing )
-		{
-			mHasTestedPing = true;
-
-			if( mAddress != null )
-			{
-				try
-				{
-					mPing = Ping.ping( mAddress );
-				}
-				catch( final IOException ex )
-				{
-					Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, null, ex );
-				}
-			}
-		}
-
-		return mPing;
-	}
-
 	public Integer getHttpStatusCode()
 	{
 		if( mHasTestedAddress && !mHasTestedHttpStatusCode )
@@ -112,7 +106,7 @@ public abstract class IPTest
 				}
 				catch( final IOException ex )
 				{
-					Logger.getLogger( IPTest.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+					Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, ex.getMessage() );
 				}
 			}
 		}
@@ -153,7 +147,7 @@ public abstract class IPTest
 				}
 				catch( final IOException ex )
 				{
-					Logger.getLogger( IPTest.class.getName() ).log( Level.SEVERE, null, ex );
+					Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, ex.getMessage() );
 				}
 			}
 		}
@@ -164,4 +158,6 @@ public abstract class IPTest
 	public abstract String getAddress();
 
 	public abstract String getMxAddress();
+
+	public abstract Integer getPing();
 }
