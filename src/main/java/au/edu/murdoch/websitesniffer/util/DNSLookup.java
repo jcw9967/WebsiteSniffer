@@ -17,41 +17,21 @@
 package au.edu.murdoch.websitesniffer.util;
 
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.xbill.DNS.AAAARecord;
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.MXRecord;
 import org.xbill.DNS.Record;
-import org.xbill.DNS.SimpleResolver;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
 public class DNSLookup
 {
-	private static SimpleResolver LOOKUP_RESOLVER;
-
-	static
-	{
-		try
-		{
-			LOOKUP_RESOLVER = new SimpleResolver( "8.8.8.8" );
-		}
-		catch( final UnknownHostException ex )
-		{
-			Logger.getLogger( DNSLookup.class.getName() ).log( Level.SEVERE, null, ex );
-		}
-	}
-
 	public static String getIPv4Address( final String url ) throws TextParseException, UnknownHostException
 	{
 		String address = null;
 
-		final Lookup lookup = new Lookup( url, Type.A );
-		lookup.setResolver( LOOKUP_RESOLVER );
-
-		final Record[] records = lookup.run();
+		final Record[] records = new Lookup( url, Type.A ).run();
 		if( records != null )
 		{
 			final ARecord record = (ARecord) records[0];
@@ -65,10 +45,7 @@ public class DNSLookup
 	{
 		String address = null;
 
-		final Lookup lookup = new Lookup( url, Type.AAAA );
-		lookup.setResolver( LOOKUP_RESOLVER );
-
-		final Record[] records = lookup.run();
+		final Record[] records = new Lookup( url, Type.AAAA ).run();
 		if( records != null )
 		{
 			final AAAARecord record = (AAAARecord) records[0];
@@ -82,10 +59,7 @@ public class DNSLookup
 	{
 		String address = null;
 
-		final Lookup lookup = new Lookup( url, Type.MX );
-		lookup.setResolver( LOOKUP_RESOLVER );
-
-		final Record[] records = lookup.run();
+		final Record[] records = new Lookup( url, Type.MX ).run();
 		if( records != null )
 		{
 			final MXRecord lowestPreferenceMX = getLowestPreferenceMX( records );
