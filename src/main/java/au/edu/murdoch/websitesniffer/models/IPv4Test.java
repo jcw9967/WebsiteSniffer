@@ -125,15 +125,20 @@ public class IPv4Test extends IPTest
 		{
 			mHasTestedPing = true;
 
-			if( mAddress != null )
+			try
 			{
+				mPing = Ping.ping( mDomain.getUrl(), Type.IPv4 );
+			}
+			catch( final TimeoutException | IOException ex )
+			{
+				final String newAddress = "www." + mDomain.getUrl();
 				try
 				{
-					mPing = Ping.ping( mAddress, Type.IPv4 );
+					mPing = Ping.ping( newAddress, Type.IPv4 );
 				}
-				catch( final TimeoutException | IOException ex )
+				catch( final IOException | TimeoutException e )
 				{
-					Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, "Failed to retrieve ping for " + mDomain.getUrl() + " (" + mAddress + "):\n" + ex.getMessage() );
+					Logger.getLogger( IPv6Test.class.getName() ).log( Level.SEVERE, "Failed to retrieve ping for " + mDomain.getUrl() + " and " + newAddress + ":\n" + ex.getMessage() );
 				}
 			}
 		}
