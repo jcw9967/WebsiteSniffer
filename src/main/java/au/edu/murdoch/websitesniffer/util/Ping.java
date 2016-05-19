@@ -22,6 +22,7 @@ import org.xbill.DNS.TextParseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,7 @@ public class Ping
 	{
 		if( address == null )
 		{
-			throw new NullPointerException();
+			throw new NullPointerException( "Address is null!" );
 		}
 
 		final ProcessBuilder builder = new ProcessBuilder();
@@ -76,7 +77,8 @@ public class Ping
 	{
 		final List<String> pingOutput = new ArrayList<>();
 
-		try( final InputStreamReader inputStreamReader = new InputStreamReader( process.getInputStream() );
+		try( final InputStream inputStream = process.getInputStream();
+			 final InputStreamReader inputStreamReader = new InputStreamReader( inputStream );
 			 final BufferedReader reader = new BufferedReader( inputStreamReader ) )
 		{
 			String line;
