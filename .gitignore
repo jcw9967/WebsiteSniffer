@@ -16,7 +16,8 @@
 # Gradle:
 .idea/gradle.xml
 .idea/libraries
-.gradle
+.gradle/
 
 # IntelliJ
-/out/
+out/
+build/
