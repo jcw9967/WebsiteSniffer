@@ -44,7 +44,7 @@ import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv6;
 
 public class Main
 {
-	private static boolean HAS_IPV6;
+	private static Boolean HAS_IPV6;
 	private static int mTestCount = 0;
 	private static int mThreadCount = 50;
 
@@ -96,18 +96,14 @@ public class Main
 					}
 				}
 
-				if( cli.hasOption( "t" ) )
+				if( cli.hasOption( "threads" ) )
 				{
-					mThreadCount = Integer.parseInt( cli.getOptionValue( "t" ) );
+					mThreadCount = Integer.parseInt( cli.getOptionValue( "threads" ) );
 					if( mThreadCount <= 0 )
 					{
 						return;
 					}
 				}
-
-				System.out.println( "Determining if IPv6 is available..." );
-				HAS_IPV6 = hasIPv6();
-				System.out.println( "IPv6 is " + ( HAS_IPV6 ? "" : "NOT " ) + "available!" );
 
 				if( cli.hasOption( "cli" ) )
 				{
@@ -115,23 +111,16 @@ public class Main
 				}
 				else
 				{
-					java.awt.EventQueue.invokeLater( new Runnable()
+					try
 					{
-						@Override
-						public void run()
-						{
-							try
-							{
-								UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-							}
-							catch( final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex )
-							{
-								Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
-							}
+						UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
+					}
+					catch( final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex )
+					{
+						Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+					}
 
-							new MainFrame().setVisible( true );
-						}
-					} );
+					new MainFrame();
 				}
 			}
 		}
@@ -148,6 +137,8 @@ public class Main
 			final List<Domain> domains = DatabaseHelper.getAllDomains();
 			if( domains.size() > 0 )
 			{
+				System.out.println( "IPv6 is " + ( hasIPv6() ? "" : "NOT " ) + "available" );
+
 				//Get user's location
 				System.out.println( "Getting your location..." );
 				final Location userLocation = LocationHelper.getLocationForHost();
@@ -180,7 +171,7 @@ public class Main
 								final Test test = new Test( domain, userLocation );
 								test.setIPv4Test( new IPv4Test( domain ) );
 
-								if( HAS_IPV6 )
+								if( hasIPv6() )
 								{
 									test.setIPv6Test( new IPv6Test( domain ) );
 								}
@@ -202,9 +193,8 @@ public class Main
 				{
 					executor.awaitTermination( Long.MAX_VALUE, TimeUnit.DAYS );
 				}
-				catch( final InterruptedException e )
+				catch( final InterruptedException ignored )
 				{
-					e.printStackTrace();
 				}
 			}
 			else
@@ -220,17 +210,21 @@ public class Main
 
 	public static boolean hasIPv6()
 	{
-		try
+		if( HAS_IPV6 == null )
 		{
-			//If we can't ping via ipv6, prevent it
-			Ping.ping( "google.com", IPv6 );
-		}
-		catch( final TimeoutException | IOException ex )
-		{
-			return false;
+			try
+			{
+				//If we can't ping via ipv6, prevent it
+				Ping.ping( "google.com", IPv6 );
+				HAS_IPV6 = true;
+			}
+			catch( final TimeoutException | IOException ex )
+			{
+				HAS_IPV6 = false;
+			}
 		}
 
-		return true;
+		return HAS_IPV6;
 	}
 
 	public static void addUrlsFromFile( final File file ) throws IOException, SQLException

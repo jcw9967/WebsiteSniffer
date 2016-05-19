@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainFrame extends javax.swing.JFrame
+public class MainFrame extends JFrame
 {
 	/**
 	 * Creates new form MainFrame
@@ -49,6 +49,8 @@ public class MainFrame extends javax.swing.JFrame
 			btnToggleIPv6.setSelected( false );
 			btnToggleIPv6.setEnabled( false );
 		}
+
+		setVisible( true );
 	}
 
 	/**
@@ -207,7 +209,7 @@ public class MainFrame extends javax.swing.JFrame
 			}
 			catch( final SQLException | IOException e )
 			{
-				e.printStackTrace();
+				Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
 			}
 		}
 	}//GEN-LAST:event_btnAddUrlsActionPerformed
@@ -357,7 +359,7 @@ public class MainFrame extends javax.swing.JFrame
 							}
 							catch( final SQLException e )
 							{
-								e.printStackTrace();
+								Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
 							}
 						}
 					} );
@@ -365,7 +367,7 @@ public class MainFrame extends javax.swing.JFrame
 			}
 			catch( final SQLException e )
 			{
-				e.printStackTrace();
+				Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
 			}
 
 			//Hack to block the main thread until finished
@@ -374,9 +376,8 @@ public class MainFrame extends javax.swing.JFrame
 			{
 				executor.awaitTermination( Long.MAX_VALUE, TimeUnit.DAYS );
 			}
-			catch( final InterruptedException e )
+			catch( final InterruptedException ignored )
 			{
-				e.printStackTrace();
 			}
 		}
 	}

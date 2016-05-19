@@ -16,6 +16,7 @@
  */
 package au.edu.murdoch.websitesniffer.util;
 
+import au.edu.murdoch.websitesniffer.gui.MainFrame;
 import au.edu.murdoch.websitesniffer.models.Location;
 import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
@@ -26,6 +27,8 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LocationHelper
 {
@@ -39,7 +42,7 @@ public class LocationHelper
 		}
 		catch( final IOException e )
 		{
-			e.printStackTrace();
+			Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
 		}
 	}
 
@@ -59,7 +62,7 @@ public class LocationHelper
 		}
 		catch( final IOException e )
 		{
-			e.printStackTrace();
+			Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
 		}
 
 		return getLocationByIP( ip );
@@ -92,7 +95,7 @@ public class LocationHelper
 			}
 			catch( final IOException | SQLException | GeoIp2Exception e )
 			{
-				e.printStackTrace();
+				Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
 			}
 		}
 
