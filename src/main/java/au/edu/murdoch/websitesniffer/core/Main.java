@@ -44,6 +44,7 @@ import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv6;
 
 public class Main
 {
+	private static String mOutputFilename = "sniffer.db";
 	private static Boolean HAS_IPV6;
 	private static int mTestCount = 0;
 	private static int mThreadCount = 50;
@@ -66,7 +67,14 @@ public class Main
 				.longOpt( "threads" )
 				.hasArg()
 				.argName( "COUNT" )
-				.desc( "Specify the number of concurrent threads to use. Default = 50." )
+				.desc( "Specify the number of concurrent threads to use. Default = 50" )
+				.build()
+		);
+		options.addOption( Option.builder( "o" )
+				.longOpt( "output" )
+				.hasArg()
+				.argName( "FILENAME" )
+				.desc( "Define the output filename of the SQLite database" )
 				.build()
 		);
 		options.addOption( "h", "help", false, "Display this help menu" );
@@ -94,6 +102,11 @@ public class Main
 						Logger.getLogger( Main.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
 						return;
 					}
+				}
+
+				if( cli.hasOption( "output" ) )
+				{
+					mOutputFilename = cli.getOptionValue( "output" );
 				}
 
 				if( cli.hasOption( "threads" ) )
@@ -128,6 +141,11 @@ public class Main
 		{
 			Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
 		}
+	}
+
+	public static String getOutputFilename()
+	{
+		return mOutputFilename;
 	}
 
 	private static void CLI()

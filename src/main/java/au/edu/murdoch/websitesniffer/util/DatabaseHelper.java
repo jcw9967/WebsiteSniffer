@@ -16,6 +16,7 @@
  */
 package au.edu.murdoch.websitesniffer.util;
 
+import au.edu.murdoch.websitesniffer.core.Main;
 import au.edu.murdoch.websitesniffer.models.*;
 
 import java.sql.*;
@@ -26,19 +27,19 @@ import java.util.logging.Logger;
 
 public class DatabaseHelper
 {
-	private static final String DATABASE_NAME = "sniffer.db";
 	private static Connection connection;
 
 	static
 	{
 		try
 		{
-			connection = DriverManager.getConnection( "jdbc:sqlite:" + DATABASE_NAME );
+			connection = DriverManager.getConnection( "jdbc:sqlite:" + Main.getOutputFilename() );
 			createDatabase();
 		}
 		catch( final SQLException ex )
 		{
 			Logger.getLogger( DatabaseHelper.class.getName() ).log( Level.SEVERE, null, ex );
+			System.exit( 0 );
 		}
 	}
 
