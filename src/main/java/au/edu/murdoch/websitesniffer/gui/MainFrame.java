@@ -263,7 +263,7 @@ public class MainFrame extends JFrame
 			final ExecutorService executor = Executors.newFixedThreadPool( 50 );
 			try
 			{
-				final List<Domain> domains = DatabaseHelper.getAllDomains();
+				final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
 
 				final DefaultTableModel dtm = (DefaultTableModel) tblTests.getModel();
 				for( int i = 0; i < domains.size(); i++ )
@@ -355,7 +355,7 @@ public class MainFrame extends JFrame
 
 							try
 							{
-								DatabaseHelper.insertTest( test );
+								DatabaseHelper.getInstance().insertTest( test );
 							}
 							catch( final SQLException e )
 							{
@@ -386,7 +386,7 @@ public class MainFrame extends JFrame
 	{
 		try
 		{
-			final List<Domain> domains = DatabaseHelper.getAllDomains();
+			final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
 			final DefaultListModel listModel = (DefaultListModel) lstUrls.getModel();
 
 			listModel.clear();

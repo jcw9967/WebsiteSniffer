@@ -28,8 +28,9 @@ import java.util.logging.Logger;
 public class DatabaseHelper
 {
 	private static Connection connection;
+	private static DatabaseHelper mInstance;
 
-	static
+	private DatabaseHelper()
 	{
 		try
 		{
@@ -43,7 +44,17 @@ public class DatabaseHelper
 		}
 	}
 
-	public static List<Domain> getAllDomains() throws SQLException
+	public static DatabaseHelper getInstance()
+	{
+		if( mInstance == null )
+		{
+			mInstance = new DatabaseHelper();
+		}
+
+		return mInstance;
+	}
+
+	public List<Domain> getAllDomains() throws SQLException
 	{
 		final List<Domain> domains = new ArrayList<>();
 
@@ -63,7 +74,7 @@ public class DatabaseHelper
 		return domains;
 	}
 
-	public static void insertDomains( final List<String> domains ) throws SQLException
+	public void insertDomains( final List<String> domains ) throws SQLException
 	{
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Domains.TABLE_NAME + "("
 				+ Domains.FIELD_URL
@@ -82,7 +93,7 @@ public class DatabaseHelper
 		}
 	}
 
-	static Location getLocation( final String city, final String country ) throws SQLException
+	Location getLocation( final String city, final String country ) throws SQLException
 	{
 		Location location = null;
 
@@ -113,7 +124,7 @@ public class DatabaseHelper
 		return location;
 	}
 
-	static void insertLocation( final String city, final String country, final double latitude, final double longitude ) throws SQLException
+	void insertLocation( final String city, final String country, final double latitude, final double longitude ) throws SQLException
 	{
 
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Locations.TABLE_NAME + "("
@@ -132,7 +143,7 @@ public class DatabaseHelper
 		}
 	}
 
-	private static int getNextTestNumber( final int domainID ) throws SQLException
+	private int getNextTestNumber( final int domainID ) throws SQLException
 	{
 		int nextTestNumber;
 
@@ -152,7 +163,7 @@ public class DatabaseHelper
 		return nextTestNumber;
 	}
 
-	public static void insertTest( final Test test ) throws SQLException
+	public void insertTest( final Test test ) throws SQLException
 	{
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Tests.TABLE_NAME + "("
 				+ Tests.FIELD_FK_DOMAIN_ID + ","
@@ -179,7 +190,7 @@ public class DatabaseHelper
 		}
 	}
 
-	private static Integer insertIPv4Test( final IPv4Test ipv4Test ) throws SQLException
+	private Integer insertIPv4Test( final IPv4Test ipv4Test ) throws SQLException
 	{
 		Integer PK = null;
 
@@ -223,7 +234,7 @@ public class DatabaseHelper
 		return PK;
 	}
 
-	private static Integer insertIPv6Test( final IPv6Test ipv6Test ) throws SQLException
+	private Integer insertIPv6Test( final IPv6Test ipv6Test ) throws SQLException
 	{
 		Integer PK = null;
 
@@ -267,7 +278,7 @@ public class DatabaseHelper
 		return PK;
 	}
 
-	private static void createDatabase()
+	private void createDatabase()
 	{
 		try( final Statement statement = connection.createStatement() )
 		{

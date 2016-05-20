@@ -85,12 +85,12 @@ public class LocationHelper
 				final double longitude = response.getLocation().getLongitude();
 
 				//If the location is already in the database, get its id
-				location = DatabaseHelper.getLocation( city, country );
+				location = DatabaseHelper.getInstance().getLocation( city, country );
 				if( location == null )
 				{
 					//Location not found; insert it
-					DatabaseHelper.insertLocation( city, country, latitude, longitude );
-					location = DatabaseHelper.getLocation( city, country );
+					DatabaseHelper.getInstance().insertLocation( city, country, latitude, longitude );
+					location = DatabaseHelper.getInstance().getLocation( city, country );
 				}
 			}
 			catch( final IOException | SQLException | GeoIp2Exception e )

@@ -152,7 +152,7 @@ public class Main
 	{
 		try
 		{
-			final List<Domain> domains = DatabaseHelper.getAllDomains();
+			final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
 			if( domains.size() > 0 )
 			{
 				System.out.println( "IPv6 is " + ( hasIPv6() ? "" : "NOT " ) + "available" );
@@ -194,7 +194,7 @@ public class Main
 									test.setIPv6Test( new IPv6Test( domain ) );
 								}
 
-								DatabaseHelper.insertTest( test );
+								DatabaseHelper.getInstance().insertTest( test );
 								Logger.getLogger( MainFrame.class.getName() ).log( Level.INFO, "Finished " + ( ++mTestCount ) + " / " + domains.size() + " : " + domain.getUrl() );
 							}
 							catch( final SQLException ex )
@@ -258,7 +258,7 @@ public class Main
 				domains.add( line );
 			}
 
-			DatabaseHelper.insertDomains( domains );
+			DatabaseHelper.getInstance().insertDomains( domains );
 		}
 	}
 }
