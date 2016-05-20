@@ -137,7 +137,7 @@ public class DatabaseHelper
 		int nextTestNumber;
 
 		try( final PreparedStatement statement = connection.prepareStatement( "SELECT COALESCE( MAX( " + Tests.FIELD_TEST_NUMBER + " ), 0 ) + 1 FROM " + Tests.TABLE_NAME + " WHERE "
-				+ Tests.FIELD_FK_DOMAIN_ID + "=?"
+				+ Tests.FIELD_FK_DOMAIN_ID + "=? LIMIT 1"
 		) )
 		{
 			statement.setObject( 1, domainID );
