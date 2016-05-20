@@ -137,7 +137,10 @@ public class IPv4Test extends IPTest
 					try
 					{
 						final String newIPv4Address = DNSLookup.getIPv4Address( newAddress );
-						mPing = Ping.ping( newIPv4Address, Type.IPv4 );
+						if( newIPv4Address != null )
+						{
+							mPing = Ping.ping( newIPv4Address, Type.IPv4 );
+						}
 					}
 					catch( final IOException | TimeoutException e )
 					{
