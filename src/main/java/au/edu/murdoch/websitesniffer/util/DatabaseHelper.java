@@ -72,7 +72,7 @@ public class DatabaseHelper
 		{
 			for( final String domain : domains )
 			{
-				statement.setString( 1, domain );
+				statement.setObject( 1, domain );
 				statement.addBatch();
 			}
 
@@ -94,8 +94,8 @@ public class DatabaseHelper
 				+ Locations.FIELD_COUNTRY + "=? LIMIT 1"
 		) )
 		{
-			statement.setString( 1, city );
-			statement.setString( 2, country );
+			statement.setObject( 1, city );
+			statement.setObject( 2, country );
 
 			try( final ResultSet resultSet = statement.executeQuery() )
 			{
@@ -124,10 +124,10 @@ public class DatabaseHelper
 				+ ") VALUES ( ?, ?, ?, ? )"
 		) )
 		{
-			statement.setString( 1, city );
-			statement.setString( 2, country );
-			statement.setDouble( 3, latitude );
-			statement.setDouble( 4, longitude );
+			statement.setObject( 1, city );
+			statement.setObject( 2, country );
+			statement.setObject( 3, latitude );
+			statement.setObject( 4, longitude );
 			statement.executeUpdate();
 		}
 	}
@@ -140,7 +140,7 @@ public class DatabaseHelper
 				+ Tests.FIELD_FK_DOMAIN_ID + "=?"
 		) )
 		{
-			statement.setInt( 1, domainID );
+			statement.setObject( 1, domainID );
 
 			try( final ResultSet resultSet = statement.executeQuery() )
 			{
@@ -196,19 +196,19 @@ public class DatabaseHelper
 					+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
 			) )
 			{
-				statement.setString( 1, ipv4Test.getAddress() );
+				statement.setObject( 1, ipv4Test.getAddress() );
 				statement.setObject( 2, ipv4Test.getPing() );
 
 				final Location ipv4AddressLocation = ipv4Test.getAddressLocation();
 				statement.setObject( 3, ipv4AddressLocation == null ? null : ipv4AddressLocation.getId() );
 
 				statement.setObject( 4, ipv4Test.getHttpStatusCode() );
-				statement.setString( 5, ipv4Test.getMxAddress() );
+				statement.setObject( 5, ipv4Test.getMxAddress() );
 
 				final Location mxAddressLocation = ipv4Test.getMxAddressLocation();
 				statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
 
-				statement.setBoolean( 7, ipv4Test.hasWorkingSMTP() );
+				statement.setObject( 7, ipv4Test.hasWorkingSMTP() );
 				statement.executeUpdate();
 
 				try( final Statement pkStatement = connection.createStatement();
@@ -240,19 +240,19 @@ public class DatabaseHelper
 					+ ") VALUES ( ?, ?, ?, ?, ?, ?, ? )"
 			) )
 			{
-				statement.setString( 1, ipv6Test.getAddress() );
+				statement.setObject( 1, ipv6Test.getAddress() );
 				statement.setObject( 2, ipv6Test.getPing() );
 
 				final Location ipv6AddressLocation = ipv6Test.getAddressLocation();
 				statement.setObject( 3, ipv6AddressLocation == null ? null : ipv6AddressLocation.getId() );
 
 				statement.setObject( 4, ipv6Test.getHttpStatusCode() );
-				statement.setString( 5, ipv6Test.getMxAddress() );
+				statement.setObject( 5, ipv6Test.getMxAddress() );
 
 				final Location mxAddressLocation = ipv6Test.getMxAddressLocation();
 				statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
 
-				statement.setBoolean( 7, ipv6Test.hasWorkingSMTP() );
+				statement.setObject( 7, ipv6Test.hasWorkingSMTP() );
 				statement.executeUpdate();
 
 				try( final Statement pkStatement = connection.createStatement();
