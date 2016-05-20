@@ -89,6 +89,11 @@ public class Main
 			}
 			else
 			{
+				if( cli.hasOption( "output" ) )
+				{
+					mOutputFilename = cli.getOptionValue( "output" );
+				}
+
 				if( cli.hasOption( "urlfile" ) )
 				{
 					final File file = new File( cli.getOptionValue( "urlfile" ) );
@@ -102,11 +107,6 @@ public class Main
 						Logger.getLogger( Main.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
 						return;
 					}
-				}
-
-				if( cli.hasOption( "output" ) )
-				{
-					mOutputFilename = cli.getOptionValue( "output" );
 				}
 
 				if( cli.hasOption( "threads" ) )
