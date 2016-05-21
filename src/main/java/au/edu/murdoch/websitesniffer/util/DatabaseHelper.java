@@ -22,29 +22,19 @@ import au.edu.murdoch.websitesniffer.models.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DatabaseHelper
 {
 	private static Connection connection;
 	private static DatabaseHelper mInstance;
 
-	private DatabaseHelper()
+	private DatabaseHelper() throws SQLException
 	{
-		try
-		{
-			connection = DriverManager.getConnection( "jdbc:sqlite:" + Main.getOutputFilename() );
-			createDatabase();
-		}
-		catch( final SQLException ex )
-		{
-			Logger.getLogger( DatabaseHelper.class.getName() ).log( Level.SEVERE, null, ex );
-			System.exit( 0 );
-		}
+		connection = DriverManager.getConnection( "jdbc:sqlite:" + Main.getOutputFilename() );
+		createDatabase();
 	}
 
-	public static DatabaseHelper getInstance()
+	public static DatabaseHelper getInstance() throws SQLException
 	{
 		if( mInstance == null )
 		{
@@ -63,11 +53,7 @@ public class DatabaseHelper
 		{
 			while( resultSet.next() )
 			{
-				final int id = resultSet.getInt( 1 );
-				final String url = resultSet.getString( 2 );
-
-				final Domain domain = new Domain( id, url );
-				domains.add( domain );
+				domains.add( new Domain( resultSet.getInt( 1 ), resultSet.getString( 2 ) ) );
 			}
 		}
 
@@ -163,8 +149,20 @@ public class DatabaseHelper
 		return nextTestNumber;
 	}
 
-	public void insertTest( final Test test ) throws SQLException
+	public void insertTest( final Test test ) throws SQLException, NullPointerException
 	{
+		final Domain domain = test.getDomain();
+		if( domain == null )
+		{
+			throw new NullPointerException( "Domain in test is null!" );
+		}
+
+		final Location userLocation = test.getUserLocation();
+		if( userLocation == null )
+		{
+			throw new NullPointerException( "User location in test is null!" );
+		}
+
 		try( final PreparedStatement statement = connection.prepareStatement( "INSERT INTO " + Tests.TABLE_NAME + "("
 				+ Tests.FIELD_FK_DOMAIN_ID + ","
 				+ Tests.FIELD_TEST_NUMBER + ","
@@ -175,10 +173,10 @@ public class DatabaseHelper
 				+ ") VALUES ( ?, ?, ?, ?, ?, ? )"
 		) )
 		{
-			statement.setObject( 1, test.getDomain().getId() );
-			statement.setObject( 2, getNextTestNumber( test.getDomain().getId() ) );
+			statement.setObject( 1, domain.getId(), Types.INTEGER );
+			statement.setObject( 2, getNextTestNumber( domain.getId() ) );
 			statement.setObject( 3, test.getTimestamp() );
-			statement.setObject( 4, test.getUserLocation().getId() );
+			statement.setObject( 4, userLocation.getId() );
 
 			final Integer ipv4TestPK = insertIPv4Test( test.getIPv4Test() );
 			statement.setObject( 5, ipv4TestPK );
@@ -225,8 +223,10 @@ public class DatabaseHelper
 				try( final Statement pkStatement = connection.createStatement();
 					 final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ) )
 				{
-					resultSet.next();
-					PK = resultSet.getInt( 1 );
+					if( resultSet.next() )
+					{
+						PK = resultSet.getInt( 1 );
+					}
 				}
 			}
 		}
@@ -269,8 +269,10 @@ public class DatabaseHelper
 				try( final Statement pkStatement = connection.createStatement();
 					 final ResultSet resultSet = pkStatement.executeQuery( "SELECT last_insert_rowid();" ) )
 				{
-					resultSet.next();
-					PK = resultSet.getInt( 1 );
+					if( resultSet.next() )
+					{
+						PK = resultSet.getInt( 1 );
+					}
 				}
 			}
 		}
@@ -278,7 +280,7 @@ public class DatabaseHelper
 		return PK;
 	}
 
-	private void createDatabase()
+	private void createDatabase() throws SQLException
 	{
 		try( final Statement statement = connection.createStatement() )
 		{
@@ -342,27 +344,14 @@ public class DatabaseHelper
 					+ ")"
 			);
 
-			connection.setAutoCommit( false );
 			statement.executeBatch();
-			connection.setAutoCommit( true );
-		}
-		catch( final SQLException ex )
-		{
-			Logger.getLogger( DatabaseHelper.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 	}
 
 	@Override
 	protected void finalize() throws Throwable
 	{
-		try
-		{
-			connection.close();
-		}
-		finally
-		{
-			super.finalize();
-		}
+		connection.close();
 	}
 
 	private enum Domains

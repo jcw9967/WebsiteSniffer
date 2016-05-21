@@ -30,6 +30,8 @@ import java.util.logging.Logger;
 
 public class IPv6Test extends IPTest
 {
+	private static final Logger log = Logger.getLogger( IPv6Test.class.getName() );
+
 	public IPv6Test( final Domain domain )
 	{
 		super( domain );
@@ -48,7 +50,7 @@ public class IPv6Test extends IPTest
 			}
 			catch( final UnknownHostException | TextParseException ex )
 			{
-				Logger.getLogger( IPv6Test.class.getName() ).log( Level.SEVERE, ex.getMessage() );
+				log.log( Level.SEVERE, ex.getMessage() );
 			}
 		}
 
@@ -89,7 +91,7 @@ public class IPv6Test extends IPTest
 				}
 				catch( final IOException ex )
 				{
-					Logger.getLogger( IPTest.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+					log.log( Level.SEVERE, ex.getMessage(), ex );
 				}
 			}
 		}
@@ -111,7 +113,7 @@ public class IPv6Test extends IPTest
 			}
 			catch( final UnknownHostException | TextParseException ex )
 			{
-				Logger.getLogger( IPv6Test.class.getName() ).log( Level.SEVERE, ex.getMessage() );
+				log.log( Level.SEVERE, ex.getMessage() );
 			}
 		}
 
@@ -141,7 +143,7 @@ public class IPv6Test extends IPTest
 					}
 					catch( final IOException | TimeoutException e )
 					{
-						Logger.getLogger( IPv6Test.class.getName() ).log( Level.SEVERE, "Failed to ping " + mDomain.getUrl() + " and " + newAddress + " via IPv6:\n" + ex.getMessage() );
+						log.log( Level.WARNING, "Failed to ping " + mDomain.getUrl() + " and " + newAddress + " via IPv6:\n" + ex.getMessage() );
 					}
 				}
 			}

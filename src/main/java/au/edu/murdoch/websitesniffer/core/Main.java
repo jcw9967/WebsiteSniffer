@@ -22,21 +22,17 @@ import au.edu.murdoch.websitesniffer.util.DatabaseHelper;
 import au.edu.murdoch.websitesniffer.util.LocationHelper;
 import au.edu.murdoch.websitesniffer.util.Ping;
 import au.edu.murdoch.websitesniffer.util.SSLUtilities;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import org.apache.commons.cli.*;
 
 import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,12 +40,14 @@ import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv6;
 
 public class Main
 {
+	private static final Logger log = Logger.getLogger( Main.class.getName() );
 	private static String mOutputFilename = "sniffer.db";
-	private static Boolean HAS_IPV6;
+	private static String mLocationDatabase = "GeoLite2-City.mmdb";
+	private static Boolean mHasIPv6;
 	private static int mTestCount = 0;
 	private static int mThreadCount = 50;
 
-	public static void main( final String args[] )
+	public static void main( final String args[] ) throws Exception
 	{
 		SSLUtilities.trustAllHostnames();
 		SSLUtilities.trustAllHttpsCertificates();
@@ -74,78 +72,80 @@ public class Main
 				.longOpt( "output" )
 				.hasArg()
 				.argName( "FILENAME" )
-				.desc( "Define the output filename of the SQLite database" )
+				.desc( "Specify the output filename of the SQLite database" )
+				.build()
+		);
+		options.addOption( Option.builder( "l" )
+				.longOpt( "locationdb" )
+				.hasArg()
+				.argName( "DATABASE_NAME" )
+				.desc( "Specify the name of the location database to use. Default = 'GeoLite2-City.mmdb'" )
 				.build()
 		);
 		options.addOption( "h", "help", false, "Display this help menu" );
 
-		try
+		final CommandLine cli = new DefaultParser().parse( options, args );
+		if( cli.hasOption( "help" ) )
 		{
-			final CommandLine cli = new DefaultParser().parse( options, args );
-			if( cli.hasOption( "help" ) )
+			final HelpFormatter helpFormatter = new HelpFormatter();
+			helpFormatter.printHelp( "[options]", options );
+		}
+		else
+		{
+			if( cli.hasOption( "output" ) )
 			{
-				final HelpFormatter helpFormatter = new HelpFormatter();
-				helpFormatter.printHelp( "[options]", options );
+				mOutputFilename = cli.getOptionValue( "output" );
+			}
+
+			if( cli.hasOption( "locationdb" ) )
+			{
+				mLocationDatabase = cli.getOptionValue( "locationdb" );
+			}
+
+			if( cli.hasOption( "urlfile" ) )
+			{
+				final File file = new File( cli.getOptionValue( "urlfile" ) );
+				System.out.println( "Reading URLs from " + file.getAbsolutePath() + "..." );
+				Main.addUrlsFromFile( file );
+			}
+
+			if( cli.hasOption( "threads" ) )
+			{
+				mThreadCount = Integer.parseInt( cli.getOptionValue( "threads" ) );
+				if( mThreadCount <= 0 )
+				{
+					throw new ArrayIndexOutOfBoundsException( "Must have a positive number of threads!" );
+				}
+			}
+
+			if( cli.hasOption( "cli" ) )
+			{
+				Main.CLI();
 			}
 			else
 			{
-				if( cli.hasOption( "output" ) )
+				try
 				{
-					mOutputFilename = cli.getOptionValue( "output" );
+					UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
+				}
+				catch( final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex )
+				{
+					log.log( Level.SEVERE, ex.getMessage(), ex );
 				}
 
-				if( cli.hasOption( "urlfile" ) )
-				{
-					final File file = new File( cli.getOptionValue( "urlfile" ) );
-					System.out.println( "Reading URLs from " + file.getAbsolutePath() + "..." );
-					try
-					{
-						Main.addUrlsFromFile( file );
-					}
-					catch( final SQLException | IOException ex )
-					{
-						Logger.getLogger( Main.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
-						return;
-					}
-				}
-
-				if( cli.hasOption( "threads" ) )
-				{
-					mThreadCount = Integer.parseInt( cli.getOptionValue( "threads" ) );
-					if( mThreadCount <= 0 )
-					{
-						return;
-					}
-				}
-
-				if( cli.hasOption( "cli" ) )
-				{
-					Main.CLI();
-				}
-				else
-				{
-					try
-					{
-						UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-					}
-					catch( final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex )
-					{
-						Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
-					}
-
-					new MainFrame();
-				}
+				new MainFrame();
 			}
-		}
-		catch( final ParseException ex )
-		{
-			Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 	}
 
 	public static String getOutputFilename()
 	{
 		return mOutputFilename;
+	}
+
+	public static String getLocationDatabase()
+	{
+		return mLocationDatabase;
 	}
 
 	private static void CLI()
@@ -159,28 +159,30 @@ public class Main
 
 				//Get user's location
 				System.out.println( "Getting your location..." );
-				final Location userLocation = LocationHelper.getLocationForHost();
+				final Location userLocation = LocationHelper.getInstance().getLocationForHost();
+
+				System.out.println( domains.size() + " URLs available. Beginning tests..." );
 
 				final ExecutorService executor = Executors.newFixedThreadPool( mThreadCount );
-				System.out.println( domains.size() + " URLs available. Beginning tests..." );
 				for( int i = 0; i < domains.size(); ++i )
 				{
 					final int testNumber = i;
-					final Domain domain = domains.get( i );
 					executor.execute( new Runnable()
 					{
 						@Override
 						public void run()
 						{
+							final Domain domain = domains.get( testNumber );
+							final long startTime = System.currentTimeMillis();
+
 							if( testNumber < mThreadCount )
 							{
 								try
 								{
 									Thread.sleep( new Random().nextInt( 999 ) );
 								}
-								catch( final InterruptedException ex )
+								catch( final InterruptedException ignored )
 								{
-									Logger.getLogger( Main.class.getName() ).log( Level.SEVERE, null, ex );
 								}
 							}
 
@@ -195,11 +197,11 @@ public class Main
 								}
 
 								DatabaseHelper.getInstance().insertTest( test );
-								Logger.getLogger( MainFrame.class.getName() ).log( Level.INFO, "Finished " + ( ++mTestCount ) + " / " + domains.size() + " : " + domain.getUrl() );
+								log.log( Level.INFO, "Finished " + ( ++mTestCount ) + " / " + domains.size() + " : " + domain.getUrl() + " in " + ( ( System.currentTimeMillis() - startTime ) / 1000 ) + "s" );
 							}
-							catch( final SQLException ex )
+							catch( final SQLException e )
 							{
-								Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+								log.log( Level.WARNING, e.getMessage() );
 							}
 						}
 					} );
@@ -220,35 +222,34 @@ public class Main
 				System.out.println( "There are no URLs to test! Did you use the '-urlfile <FILE>' argument?" );
 			}
 		}
-		catch( final SQLException ex )
+		catch( final GeoIp2Exception | IOException | SQLException ex )
 		{
-			Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, null, ex );
+			log.log( Level.SEVERE, null, ex );
 		}
 	}
 
 	public static boolean hasIPv6()
 	{
-		if( HAS_IPV6 == null )
+		if( mHasIPv6 == null )
 		{
 			try
 			{
 				//If we can't ping via ipv6, prevent it
 				Ping.ping( "google.com", IPv6 );
-				HAS_IPV6 = true;
+				mHasIPv6 = true;
 			}
 			catch( final TimeoutException | IOException ex )
 			{
-				HAS_IPV6 = false;
+				mHasIPv6 = false;
 			}
 		}
 
-		return HAS_IPV6;
+		return mHasIPv6;
 	}
 
 	public static void addUrlsFromFile( final File file ) throws IOException, SQLException
 	{
-		try( final FileReader fileReader = new FileReader( file );
-			 final BufferedReader reader = new BufferedReader( fileReader ) )
+		try( final BufferedReader reader = new BufferedReader( new FileReader( file ) ) )
 		{
 			final List<String> domains = new ArrayList<>();
 

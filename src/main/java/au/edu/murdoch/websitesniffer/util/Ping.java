@@ -77,9 +77,7 @@ public class Ping
 	{
 		final List<String> pingOutput = new ArrayList<>();
 
-		try( final InputStream inputStream = process.getInputStream();
-			 final InputStreamReader inputStreamReader = new InputStreamReader( inputStream );
-			 final BufferedReader reader = new BufferedReader( inputStreamReader ) )
+		try( final BufferedReader reader = new BufferedReader( new InputStreamReader( process.getInputStream() ) ) )
 		{
 			String line;
 			while( ( line = reader.readLine() ) != null )

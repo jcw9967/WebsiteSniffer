@@ -29,7 +29,7 @@ public class Test
 	public Test( final Domain domain, final Location location )
 	{
 		mDomain = domain;
-		mTimestamp = new Date().getTime();
+		mTimestamp = System.currentTimeMillis();
 		mUserLocation = location;
 	}
 

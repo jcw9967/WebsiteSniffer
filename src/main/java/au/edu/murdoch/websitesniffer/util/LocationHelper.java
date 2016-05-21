@@ -16,7 +16,7 @@
  */
 package au.edu.murdoch.websitesniffer.util;
 
-import au.edu.murdoch.websitesniffer.gui.MainFrame;
+import au.edu.murdoch.websitesniffer.core.Main;
 import au.edu.murdoch.websitesniffer.models.Location;
 import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
@@ -26,79 +26,71 @@ import com.maxmind.geoip2.model.CityResponse;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LocationHelper
 {
-	private static DatabaseReader reader;
+	private static LocationHelper mInstance;
+	private static DatabaseReader mReader;
 
-	static
+	private LocationHelper() throws IOException
 	{
-		try
+		mReader = new DatabaseReader.Builder( new File( Main.getLocationDatabase() ) ).withCache( new CHMCache() ).build();
+	}
+
+	public static LocationHelper getInstance() throws IOException
+	{
+		if( mInstance == null )
 		{
-			reader = new DatabaseReader.Builder( new File( "GeoLite2-City.mmdb" ) ).withCache( new CHMCache() ).build();
+			mInstance = new LocationHelper();
 		}
-		catch( final IOException e )
+
+		return mInstance;
+	}
+
+	public Location getLocationForHost() throws IOException, SQLException, GeoIp2Exception
+	{
+		final URL url = new URL( "http://checkip.amazonaws.com" );
+		try( final BufferedReader bufferedReader = new BufferedReader( new InputStreamReader( url.openStream() ) ) )
 		{
-			Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
+			return getLocationByIP( bufferedReader.readLine() );
 		}
 	}
 
-	public static Location getLocationForHost()
-	{
-		String ip = null;
-
-		try
-		{
-			final URL url = new URL( "http://checkip.amazonaws.com" );
-			try( final InputStream inputStream = url.openStream();
-				 final InputStreamReader inputStreamReader = new InputStreamReader( inputStream );
-				 final BufferedReader bufferedReader = new BufferedReader( inputStreamReader ) )
-			{
-				ip = bufferedReader.readLine();
-			}
-		}
-		catch( final IOException e )
-		{
-			Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
-		}
-
-		return getLocationByIP( ip );
-	}
-
-	public static Location getLocationByIP( final String ip )
+	public Location getLocationByIP( final String ip ) throws IOException, GeoIp2Exception, SQLException
 	{
 		Location location = null;
 
 		if( ip != null )
 		{
-			try
+			final InetAddress address = InetAddress.getByName( ip );
+			final CityResponse response = mReader.city( address );
+
+			final String city = response.getCity().getName();
+			final String country = response.getCountry().getName();
+			final double latitude = response.getLocation().getLatitude();
+			final double longitude = response.getLocation().getLongitude();
+
+			//If the location is already in the database, get its id
+			location = DatabaseHelper.getInstance().getLocation( city, country );
+			if( location == null )
 			{
-				final InetAddress address = InetAddress.getByName( ip );
-				final CityResponse response = reader.city( address );
-
-				final String city = response.getCity().getName();
-				final String country = response.getCountry().getName();
-				final double latitude = response.getLocation().getLatitude();
-				final double longitude = response.getLocation().getLongitude();
-
-				//If the location is already in the database, get its id
+				//Location not found; insert it
+				DatabaseHelper.getInstance().insertLocation( city, country, latitude, longitude );
 				location = DatabaseHelper.getInstance().getLocation( city, country );
-				if( location == null )
-				{
-					//Location not found; insert it
-					DatabaseHelper.getInstance().insertLocation( city, country, latitude, longitude );
-					location = DatabaseHelper.getInstance().getLocation( city, country );
-				}
 			}
-			catch( final IOException | SQLException | GeoIp2Exception e )
-			{
-				Logger.getLogger( LocationHelper.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
-			}
+
 		}
 
 		return location;
+	}
+
+	@Override
+	protected void finalize() throws Throwable
+	{
+		mReader.close();
 	}
 }

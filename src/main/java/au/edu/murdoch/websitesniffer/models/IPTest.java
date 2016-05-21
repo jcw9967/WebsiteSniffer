@@ -17,15 +17,20 @@
 package au.edu.murdoch.websitesniffer.models;
 
 import au.edu.murdoch.websitesniffer.util.LocationHelper;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
+
 public abstract class IPTest
 {
+	private static final Logger log = Logger.getLogger( IPTest.class.getName() );
 	static final int MAX_REDIRECTS = 5;
 
 	public enum Type
@@ -65,7 +70,14 @@ public abstract class IPTest
 
 			if( mAddress != null )
 			{
-				mAddressLocation = LocationHelper.getLocationByIP( mAddress );
+				try
+				{
+					mAddressLocation = LocationHelper.getInstance().getLocationByIP( mAddress );
+				}
+				catch( final IOException | GeoIp2Exception | SQLException e )
+				{
+					log.log( Level.WARNING, e.getMessage(), e );
+				}
 			}
 		}
 
@@ -82,7 +94,14 @@ public abstract class IPTest
 
 			if( mMxAddress != null )
 			{
-				mMxAddressLocation = LocationHelper.getLocationByIP( mMxAddress );
+				try
+				{
+					mMxAddressLocation = LocationHelper.getInstance().getLocationByIP( mMxAddress );
+				}
+				catch( final IOException | GeoIp2Exception | SQLException e )
+				{
+					log.log( Level.WARNING, e.getMessage() );
+				}
 			}
 		}
 
@@ -108,7 +127,7 @@ public abstract class IPTest
 				}
 				catch( final IOException ex )
 				{
-					Logger.getLogger( IPTest.class.getName() ).log( Level.INFO, ex.getMessage() );
+					log.log( Level.INFO, ex.getMessage() );
 				}
 			}
 		}

@@ -20,6 +20,7 @@ import au.edu.murdoch.websitesniffer.core.Main;
 import au.edu.murdoch.websitesniffer.models.*;
 import au.edu.murdoch.websitesniffer.util.DatabaseHelper;
 import au.edu.murdoch.websitesniffer.util.LocationHelper;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -35,6 +36,8 @@ import java.util.logging.Logger;
 
 public class MainFrame extends JFrame
 {
+	private static final Logger log = Logger.getLogger( MainFrame.class.getName() );
+
 	/**
 	 * Creates new form MainFrame
 	 */
@@ -209,7 +212,7 @@ public class MainFrame extends JFrame
 			}
 			catch( final SQLException | IOException e )
 			{
-				Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
+				log.log( Level.SEVERE, e.getMessage(), e );
 			}
 		}
 	}//GEN-LAST:event_btnAddUrlsActionPerformed
@@ -254,12 +257,12 @@ public class MainFrame extends JFrame
 		setIconImage( Toolkit.getDefaultToolkit().getImage( getClass().getResource( "/images/icon.png" ) ) );
 	}
 
-	private void performTests()
+	private void performTests() throws IOException, SQLException, GeoIp2Exception
 	{
 		if( btnToggleIPv4.isSelected() || btnToggleIPv6.isSelected() )
 		{
 			//Get user's location
-			final Location userLocation = LocationHelper.getLocationForHost();
+			final Location userLocation = LocationHelper.getInstance().getLocationForHost();
 			final ExecutorService executor = Executors.newFixedThreadPool( 50 );
 			try
 			{
@@ -359,7 +362,7 @@ public class MainFrame extends JFrame
 							}
 							catch( final SQLException e )
 							{
-								Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
+								log.log( Level.SEVERE, e.getMessage(), e );
 							}
 						}
 					} );
@@ -367,7 +370,7 @@ public class MainFrame extends JFrame
 			}
 			catch( final SQLException e )
 			{
-				Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, e.getMessage(), e );
+				log.log( Level.SEVERE, e.getMessage(), e );
 			}
 
 			//Hack to block the main thread until finished
@@ -397,7 +400,7 @@ public class MainFrame extends JFrame
 		}
 		catch( final SQLException ex )
 		{
-			Logger.getLogger( MainFrame.class.getName() ).log( Level.SEVERE, ex.getMessage(), ex );
+			log.log( Level.SEVERE, ex.getMessage(), ex );
 		}
 	}
 }
