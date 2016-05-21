@@ -16,8 +16,6 @@
  */
 package au.edu.murdoch.websitesniffer.models;
 
-import java.util.Date;
-
 public class Test
 {
 	private final Domain mDomain;

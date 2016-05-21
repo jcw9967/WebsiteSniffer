@@ -26,8 +26,6 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
-
 public abstract class IPTest
 {
 	private static final Logger log = Logger.getLogger( IPTest.class.getName() );
@@ -74,6 +72,10 @@ public abstract class IPTest
 				{
 					mAddressLocation = LocationHelper.getInstance().getLocationByIP( mAddress );
 				}
+				catch( final NullPointerException e )
+				{
+					log.log( Level.INFO, e.getMessage() );
+				}
 				catch( final IOException | GeoIp2Exception | SQLException e )
 				{
 					log.log( Level.WARNING, e.getMessage(), e );
@@ -98,9 +100,13 @@ public abstract class IPTest
 				{
 					mMxAddressLocation = LocationHelper.getInstance().getLocationByIP( mMxAddress );
 				}
+				catch( final NullPointerException e )
+				{
+					log.log( Level.INFO, e.getMessage() );
+				}
 				catch( final IOException | GeoIp2Exception | SQLException e )
 				{
-					log.log( Level.WARNING, e.getMessage() );
+					log.log( Level.WARNING, e.getMessage(), e );
 				}
 			}
 		}
@@ -127,7 +133,7 @@ public abstract class IPTest
 				}
 				catch( final IOException ex )
 				{
-					log.log( Level.INFO, ex.getMessage() );
+					log.log( Level.WARNING, ex.getMessage() );
 				}
 			}
 		}

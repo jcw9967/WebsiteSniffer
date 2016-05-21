@@ -26,13 +26,18 @@ import com.maxmind.geoip2.exception.GeoIp2Exception;
 import org.apache.commons.cli.*;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -197,7 +202,8 @@ public class Main
 								}
 
 								DatabaseHelper.getInstance().insertTest( test );
-								log.log( Level.INFO, "Finished " + ( ++mTestCount ) + " / " + domains.size() + " : " + domain.getUrl() + " in " + ( ( System.currentTimeMillis() - startTime ) / 1000 ) + "s" );
+								log.log( Level.INFO,
+										"Finished " + ( ++mTestCount ) + " / " + domains.size() + " : " + domain.getUrl() + " in " + ( ( System.currentTimeMillis() - startTime ) / 1000 ) + "s" );
 							}
 							catch( final SQLException e )
 							{

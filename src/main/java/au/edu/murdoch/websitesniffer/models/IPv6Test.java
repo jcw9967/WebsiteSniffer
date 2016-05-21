@@ -139,11 +139,14 @@ public class IPv6Test extends IPTest
 					try
 					{
 						final String newIPv6Address = DNSLookup.getIPv6Address( newAddress );
-						mPing = Ping.ping( newIPv6Address, Type.IPv6 );
+						if( newIPv6Address != null )
+						{
+							mPing = Ping.ping( newIPv6Address, Type.IPv6 );
+						}
 					}
 					catch( final IOException | TimeoutException e )
 					{
-						log.log( Level.WARNING, "Failed to ping " + mDomain.getUrl() + " and " + newAddress + " via IPv6:\n" + ex.getMessage() );
+						log.log( Level.WARNING, "Failed to ping " + mDomain.getUrl() + " and " + newAddress + " via IPv6" );
 					}
 				}
 			}
