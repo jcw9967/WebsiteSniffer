@@ -37,7 +37,6 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -160,67 +159,76 @@ public class Main
 			final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
 			if( domains.size() > 0 )
 			{
-				System.out.println( "IPv6 is " + ( hasIPv6() ? "" : "NOT " ) + "available" );
+				System.out.print( "IPv6 is..." );
+				System.out.println( ( hasIPv6() ? " " : " NOT " ) + "available!" );
 
 				//Get user's location
-				System.out.println( "Getting your location..." );
+				System.out.print( "Your location is..." );
 				final Location userLocation = LocationHelper.getInstance().getLocationForHost();
+				System.out.println( " " + userLocation );
 
-				System.out.println( domains.size() + " URLs available. Beginning tests..." );
-
-				final ExecutorService executor = Executors.newFixedThreadPool( mThreadCount );
-				for( int i = 0; i < domains.size(); ++i )
+				if( userLocation != null )
 				{
-					final int testNumber = i;
-					executor.execute( new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							final Domain domain = domains.get( testNumber );
-							final long startTime = System.currentTimeMillis();
+					System.out.println( domains.size() + " URLs available. Beginning tests..." );
 
-							if( testNumber < mThreadCount )
+					final ExecutorService executor = Executors.newFixedThreadPool( mThreadCount );
+					for( int i = 0; i < domains.size(); ++i )
+					{
+						final int testNumber = i;
+						final Domain domain = domains.get( testNumber );
+						executor.execute( new Runnable()
+						{
+							@Override
+							public void run()
 							{
+								final long startTime = System.currentTimeMillis();
+
+								if( testNumber < mThreadCount )
+								{
+									try
+									{
+										Thread.sleep( new Random().nextInt( 999 ) );
+									}
+									catch( final InterruptedException ignored )
+									{
+									}
+								}
+
 								try
 								{
-									Thread.sleep( new Random().nextInt( 999 ) );
+									final Test test = new Test( domain, userLocation );
+									test.setIPv4Test( new IPv4Test( domain ) );
+
+									if( hasIPv6() )
+									{
+										test.setIPv6Test( new IPv6Test( domain ) );
+									}
+
+									DatabaseHelper.getInstance().insertTest( test );
+									log.log( Level.INFO,
+											"Finished " + ( ++mTestCount ) + " / " + domains.size() + " : " + domain.getUrl() + " in " + ( System.currentTimeMillis() - startTime ) + "ms" );
 								}
-								catch( final InterruptedException ignored )
+								catch( final SQLException e )
 								{
+									log.log( Level.WARNING, e.getMessage() );
 								}
 							}
+						} );
+					}
 
-							try
-							{
-								final Test test = new Test( domain, userLocation );
-								test.setIPv4Test( new IPv4Test( domain ) );
-
-								if( hasIPv6() )
-								{
-									test.setIPv6Test( new IPv6Test( domain ) );
-								}
-
-								DatabaseHelper.getInstance().insertTest( test );
-								log.log( Level.INFO,
-										"Finished " + ( ++mTestCount ) + " / " + domains.size() + " : " + domain.getUrl() + " in " + ( ( System.currentTimeMillis() - startTime ) / 1000 ) + "s" );
-							}
-							catch( final SQLException e )
-							{
-								log.log( Level.WARNING, e.getMessage() );
-							}
-						}
-					} );
+					//Hack to block the main thread until finished
+					executor.shutdown();
+					try
+					{
+						executor.awaitTermination( Long.MAX_VALUE, TimeUnit.DAYS );
+					}
+					catch( final InterruptedException ignored )
+					{
+					}
 				}
-
-				//Hack to block the main thread until finished
-				executor.shutdown();
-				try
+				else
 				{
-					executor.awaitTermination( Long.MAX_VALUE, TimeUnit.DAYS );
-				}
-				catch( final InterruptedException ignored )
-				{
+					log.log( Level.SEVERE, "User location can't be found!" );
 				}
 			}
 			else
@@ -230,7 +238,7 @@ public class Main
 		}
 		catch( final GeoIp2Exception | IOException | SQLException ex )
 		{
-			log.log( Level.SEVERE, null, ex );
+			log.log( Level.SEVERE, ex.getMessage(), ex );
 		}
 	}
 
@@ -244,7 +252,7 @@ public class Main
 				Ping.ping( "google.com", IPv6 );
 				mHasIPv6 = true;
 			}
-			catch( final TimeoutException | IOException ex )
+			catch( final IOException | InterruptedException ex )
 			{
 				mHasIPv6 = false;
 			}

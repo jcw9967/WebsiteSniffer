@@ -18,11 +18,12 @@ package au.edu.murdoch.websitesniffer.models;
 
 import au.edu.murdoch.websitesniffer.util.DNSLookup;
 import au.edu.murdoch.websitesniffer.util.Ping;
+import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
+import org.jsoup.Jsoup;
 import org.xbill.DNS.TextParseException;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -48,9 +49,8 @@ public class IPv4Test extends IPTest
 			{
 				mAddress = DNSLookup.getIPv4Address( mDomain.getUrl() );
 			}
-			catch( final UnknownHostException | TextParseException ex )
+			catch( final UnknownHostException | TextParseException ignored )
 			{
-				Logger.getLogger( IPv4Test.class.getName() ).log( Level.SEVERE, ex.getMessage() );
 			}
 		}
 
@@ -68,30 +68,15 @@ public class IPv4Test extends IPTest
 			{
 				try
 				{
-					final URL url = new URL( "http://" + mAddress );
-					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-					connection.connect();
-
-					mHttpStatusCode = connection.getResponseCode();
-
-					int redirectCount = 0;
-					while( mHttpStatusCode >= 300
-							&& mHttpStatusCode <= 308
-							&& redirectCount < MAX_REDIRECTS )
-					{
-						//Follow redirect
-						++redirectCount;
-						final String locationUrl = connection.getHeaderField( "Location" );
-						final URL redirectUrl = new URL( locationUrl );
-						connection = (HttpURLConnection) redirectUrl.openConnection();
-						connection.connect();
-
-						mHttpStatusCode = connection.getResponseCode();
-					}
+					final Connection.Response response = Jsoup.connect( "http://" + mAddress ).method( Connection.Method.HEAD ).execute();
+					mHttpStatusCode = response.statusCode();
 				}
-				catch( final IOException ex )
+				catch( final HttpStatusException e )
 				{
-					log.log( Level.WARNING, ex.getMessage() );
+					mHttpStatusCode = e.getStatusCode();
+				}
+				catch( final IOException ignored )
+				{
 				}
 			}
 		}
@@ -111,9 +96,8 @@ public class IPv4Test extends IPTest
 				final String mxUrl = DNSLookup.getMXUrl( mDomain.getUrl() );
 				mMxAddress = mxUrl == null ? null : DNSLookup.getIPv4Address( mxUrl );
 			}
-			catch( final UnknownHostException | TextParseException ex )
+			catch( final UnknownHostException | TextParseException ignored )
 			{
-				log.log( Level.SEVERE, ex.getMessage() );
 			}
 		}
 
@@ -127,27 +111,19 @@ public class IPv4Test extends IPTest
 		{
 			mHasTestedPing = true;
 
-			if( mAddress != null )
+			try
 			{
+				mPing = Ping.ping( mDomain.getUrl(), Type.IPv4 );
+			}
+			catch( final IOException | InterruptedException ex )
+			{
+				final String newURL = "www." + mDomain.getUrl();
 				try
 				{
-					mPing = Ping.ping( mAddress, Type.IPv4 );
+					mPing = Ping.ping( newURL, Type.IPv4 );
 				}
-				catch( final TimeoutException | IOException ex )
+				catch( final IOException | InterruptedException ignored )
 				{
-					final String newAddress = "www." + mDomain.getUrl();
-					try
-					{
-						final String newIPv4Address = DNSLookup.getIPv4Address( newAddress );
-						if( newIPv4Address != null )
-						{
-							mPing = Ping.ping( newIPv4Address, Type.IPv4 );
-						}
-					}
-					catch( final IOException | TimeoutException e )
-					{
-						log.log( Level.WARNING, "Failed to ping " + mDomain.getUrl() + " and " + newAddress + " via IPv4" );
-					}
 				}
 			}
 		}

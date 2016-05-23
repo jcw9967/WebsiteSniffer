@@ -118,9 +118,9 @@ public final class SSLUtilities
 		 * @return the true boolean value indicating the host name is trusted.
 		 */
 		@Override
-		public boolean verify( String hostname, javax.net.ssl.SSLSession session )
+		public boolean verify( final String hostname, final javax.net.ssl.SSLSession session )
 		{
-			return ( true );
+			return true;
 		}
 	}
 
@@ -148,7 +148,7 @@ public final class SSLUtilities
 		 *                 certificate.
 		 */
 		@Override
-		public void checkClientTrusted( X509Certificate[] chain, String authType )
+		public void checkClientTrusted( final X509Certificate[] chain, final String authType )
 		{
 		}
 
@@ -160,7 +160,7 @@ public final class SSLUtilities
 		 * @param authType the key exchange algorithm used.
 		 */
 		@Override
-		public void checkServerTrusted( X509Certificate[] chain, String authType )
+		public void checkServerTrusted( final X509Certificate[] chain, final String authType )
 		{
 		}
 

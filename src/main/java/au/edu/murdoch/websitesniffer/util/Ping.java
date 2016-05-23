@@ -18,14 +18,12 @@ package au.edu.murdoch.websitesniffer.util;
 
 import au.edu.murdoch.websitesniffer.models.IPTest.Type;
 import org.apache.commons.lang3.SystemUtils;
-import org.xbill.DNS.TextParseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 import static au.edu.murdoch.websitesniffer.models.IPTest.Type.IPv4;
 
@@ -40,11 +38,11 @@ public class Ping
 	 *
 	 * @throws IOException
 	 */
-	public static int ping( final String address, final Type ipType ) throws IOException, TimeoutException
+	public static int ping( final String address, final Type ipType ) throws IOException, InterruptedException
 	{
 		if( address == null )
 		{
-			throw new NullPointerException( "Address is null!" );
+			throw new NullPointerException( "Null address" );
 		}
 
 		final ProcessBuilder builder = new ProcessBuilder();
@@ -59,14 +57,30 @@ public class Ping
 		builder.redirectErrorStream( true );
 
 		final Process process = builder.start();
+		process.waitFor();
+		process.getOutputStream().close();
 
-		final int ping = processPing( process );
-		process.destroy();
+		if( process.exitValue() == 0 )
+		{
+			return processPing( process );
+		}
+		else
+		{
+			try( final BufferedReader reader = new BufferedReader( new InputStreamReader( process.getInputStream() ) ) )
+			{
+				final StringBuilder strBuilder = new StringBuilder();
+				String line;
+				while( ( line = reader.readLine() ) != null )
+				{
+					strBuilder.append( line );
+				}
 
-		return ping;
+				throw new IOException( strBuilder.toString() );
+			}
+		}
 	}
 
-	private static int processPing( final Process process ) throws IOException, TimeoutException
+	private static int processPing( final Process process ) throws IOException
 	{
 		final List<String> pingOutput = readPingOutput( process );
 		return getMinimumPing( pingOutput );
@@ -88,54 +102,21 @@ public class Ping
 		return pingOutput;
 	}
 
-	private static int getMinimumPing( final List<String> pingOutput ) throws IOException, TimeoutException
+	private static int getMinimumPing( final List<String> pingOutput )
 	{
-		int ping = 0;
+		final String lastLine = pingOutput.get( pingOutput.size() - 1 );
+		final int index = lastLine.indexOf( '=' ) + 2;
 
-		if( pingOutput.size() > 0 )
+		final int endIndex;
+		if( SystemUtils.IS_OS_WINDOWS )
 		{
-			final String lastLine = pingOutput.get( pingOutput.size() - 1 );
-
-			boolean failureParsing = false;
-			int index = lastLine.indexOf( '=' );
-			if( index != -1 )
-			{
-				index += 2;
-
-				final int endIndex;
-				if( SystemUtils.IS_OS_WINDOWS )
-				{
-					endIndex = lastLine.indexOf( 'm', index );
-				}
-				else
-				{
-					endIndex = lastLine.indexOf( '/', index );
-				}
-
-				if( endIndex != -1 )
-				{
-					ping = Math.round( Float.parseFloat( lastLine.substring( index, endIndex ) ) );
-				}
-				else
-				{
-					failureParsing = true;
-				}
-			}
-			else
-			{
-				failureParsing = true;
-			}
-
-			if( failureParsing )
-			{
-				throw new TextParseException();
-			}
+			endIndex = lastLine.indexOf( 'm', index );
 		}
 		else
 		{
-			throw new IOException();
+			endIndex = lastLine.indexOf( '/', index );
 		}
 
-		return ping;
+		return Math.round( Float.parseFloat( lastLine.substring( index, endIndex ) ) );
 	}
 }

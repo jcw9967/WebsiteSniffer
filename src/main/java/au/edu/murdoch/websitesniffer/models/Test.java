@@ -61,7 +61,7 @@ public class Test
 		mIPv4Test = IPv4Test;
 	}
 
-	public void setIPv6Test( IPv6Test IPv6Test )
+	public void setIPv6Test( final IPv6Test IPv6Test )
 	{
 		mIPv6Test = IPv6Test;
 	}

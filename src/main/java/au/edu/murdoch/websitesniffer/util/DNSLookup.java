@@ -58,7 +58,6 @@ public class DNSLookup
 		if( records != null )
 		{
 			final MXRecord lowestPreferenceMX = getLowestPreferenceMX( records );
-
 			address = lowestPreferenceMX.getTarget().toString();
 		}
 

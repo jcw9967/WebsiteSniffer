@@ -33,13 +33,9 @@ import java.sql.SQLException;
 
 public class LocationHelper
 {
+	private static final File mLocationDatabase = new File( Main.getLocationDatabase() );
+	private static final CHMCache mCache = new CHMCache();
 	private static LocationHelper mInstance;
-	private static DatabaseReader mReader;
-
-	private LocationHelper() throws IOException
-	{
-		mReader = new DatabaseReader.Builder( new File( Main.getLocationDatabase() ) ).withCache( new CHMCache() ).build();
-	}
 
 	public static LocationHelper getInstance() throws IOException
 	{
@@ -51,7 +47,7 @@ public class LocationHelper
 		return mInstance;
 	}
 
-	public Location getLocationForHost() throws IOException, SQLException, GeoIp2Exception
+	public Location getLocationForHost() throws IOException, SQLException, GeoIp2Exception, NullPointerException
 	{
 		final URL url = new URL( "http://checkip.amazonaws.com" );
 		try( final BufferedReader bufferedReader = new BufferedReader( new InputStreamReader( url.openStream() ) ) )
@@ -60,12 +56,12 @@ public class LocationHelper
 		}
 	}
 
-	public Location getLocationByIP( final String ip ) throws IOException, GeoIp2Exception, SQLException
+	public Location getLocationByIP( final String ip ) throws IOException, GeoIp2Exception, SQLException, NullPointerException
 	{
-		Location location = null;
-
 		if( ip != null )
 		{
+			final DatabaseReader mReader = new DatabaseReader.Builder( mLocationDatabase ).withCache( mCache ).build();
+
 			final InetAddress address = InetAddress.getByName( ip );
 			final CityResponse response = mReader.city( address );
 
@@ -75,7 +71,7 @@ public class LocationHelper
 			final double longitude = response.getLocation().getLongitude();
 
 			//If the location is already in the database, get its id
-			location = DatabaseHelper.getInstance().getLocation( city, country );
+			Location location = DatabaseHelper.getInstance().getLocation( city, country );
 			if( location == null )
 			{
 				//Location not found; insert it
@@ -83,14 +79,11 @@ public class LocationHelper
 				location = DatabaseHelper.getInstance().getLocation( city, country );
 			}
 
+			return location;
 		}
-
-		return location;
-	}
-
-	@Override
-	protected void finalize() throws Throwable
-	{
-		mReader.close();
+		else
+		{
+			throw new NullPointerException( "IP is null!" );
+		}
 	}
 }

@@ -390,7 +390,7 @@ public class MainFrame extends JFrame
 		try
 		{
 			final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
-			final DefaultListModel listModel = (DefaultListModel) lstUrls.getModel();
+			final DefaultListModel<String> listModel = (DefaultListModel<String>) lstUrls.getModel();
 
 			listModel.clear();
 			for( final Domain domain : domains )

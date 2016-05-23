@@ -72,13 +72,8 @@ public abstract class IPTest
 				{
 					mAddressLocation = LocationHelper.getInstance().getLocationByIP( mAddress );
 				}
-				catch( final NullPointerException e )
+				catch( final NullPointerException | IOException | GeoIp2Exception | SQLException ignored )
 				{
-					log.log( Level.INFO, e.getMessage() );
-				}
-				catch( final IOException | GeoIp2Exception | SQLException e )
-				{
-					log.log( Level.WARNING, e.getMessage(), e );
 				}
 			}
 		}
@@ -100,13 +95,8 @@ public abstract class IPTest
 				{
 					mMxAddressLocation = LocationHelper.getInstance().getLocationByIP( mMxAddress );
 				}
-				catch( final NullPointerException e )
+				catch( final NullPointerException | IOException | GeoIp2Exception | SQLException ignored )
 				{
-					log.log( Level.INFO, e.getMessage() );
-				}
-				catch( final IOException | GeoIp2Exception | SQLException e )
-				{
-					log.log( Level.WARNING, e.getMessage(), e );
 				}
 			}
 		}
@@ -131,9 +121,8 @@ public abstract class IPTest
 					mHasWorkingSMTP = SMTPReply.isPositiveCompletion( client.getReplyCode() );
 					client.disconnect();
 				}
-				catch( final IOException ex )
+				catch( final IOException ignored )
 				{
-					log.log( Level.WARNING, ex.getMessage() );
 				}
 			}
 		}
