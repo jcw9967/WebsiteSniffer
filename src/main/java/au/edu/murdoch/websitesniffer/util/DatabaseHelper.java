@@ -19,6 +19,7 @@ package au.edu.murdoch.websitesniffer.util;
 import au.edu.murdoch.websitesniffer.core.Main;
 import au.edu.murdoch.websitesniffer.models.*;
 
+import java.net.InetAddress;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,8 +150,7 @@ public class DatabaseHelper
 		int nextTestNumber = 1;
 
 		try( final Connection connection = DriverManager.getConnection( "jdbc:sqlite:" + Main.getOutputFilename(), properties );
-			 final PreparedStatement statement = connection.prepareStatement( "SELECT "
-					 + "COALESCE(MAX(" + Tests.FIELD_TEST_NUMBER + "),0)+1"
+			 final PreparedStatement statement = connection.prepareStatement( "SELECT COALESCE(MAX(" + Tests.FIELD_TEST_NUMBER + "),0)+1"
 					 + " FROM "
 					 + Tests.TABLE_NAME
 					 + " WHERE "
@@ -196,6 +196,7 @@ public class DatabaseHelper
 			statement.setObject( 3, test.getTimestamp() );
 			statement.setObject( 4, test.getUserLocation().getId() );
 
+			connection.setAutoCommit( false );
 			final Integer ipv4TestPK = insertIPv4Test( test.getIPv4Test() );
 			statement.setObject( 6, ipv4TestPK );
 
@@ -203,6 +204,7 @@ public class DatabaseHelper
 			statement.setObject( 6, ipv6TestPK );
 
 			statement.executeUpdate();
+			connection.setAutoCommit( true );
 		}
 	}
 
@@ -224,13 +226,17 @@ public class DatabaseHelper
 						 + ") VALUES (?,?,?,?,?,?,?)"
 				 ) )
 			{
-				statement.setObject( 1, ipv4Test.getAddress() );
+				final InetAddress address = ipv4Test.getAddress();
+				statement.setObject( 1, address == null ? null : address.getHostAddress() );
+
 				statement.setObject( 2, ipv4Test.getPing() );
 
 				final Location ipv4AddressLocation = ipv4Test.getAddressLocation();
 				statement.setObject( 3, ipv4AddressLocation == null ? null : ipv4AddressLocation.getId() );
 				statement.setObject( 4, ipv4Test.getHttpStatusCode() );
-				statement.setObject( 5, ipv4Test.getMxAddress() );
+
+				final InetAddress mxAddress = ipv4Test.getMxAddress();
+				statement.setObject( 5, mxAddress == null ? null : mxAddress.getHostAddress() );
 
 				final Location mxAddressLocation = ipv4Test.getMxAddressLocation();
 				statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
@@ -271,14 +277,18 @@ public class DatabaseHelper
 						 + ") VALUES (?,?,?,?,?,?,?)"
 				 ) )
 			{
-				statement.setObject( 1, ipv6Test.getAddress() );
+				final InetAddress address = ipv6Test.getAddress();
+				statement.setObject( 1, address == null ? null : address.getHostAddress() );
+
 				statement.setObject( 2, ipv6Test.getPing() );
 
 				final Location ipv4AddressLocation = ipv6Test.getAddressLocation();
 				statement.setObject( 3, ipv4AddressLocation == null ? null : ipv4AddressLocation.getId() );
 
 				statement.setObject( 4, ipv6Test.getHttpStatusCode() );
-				statement.setObject( 5, ipv6Test.getMxAddress() );
+
+				final InetAddress mxAddress = ipv6Test.getMxAddress();
+				statement.setObject( 5, mxAddress == null ? null : mxAddress.getHostAddress() );
 
 				final Location mxAddressLocation = ipv6Test.getMxAddressLocation();
 				statement.setObject( 6, mxAddressLocation == null ? null : mxAddressLocation.getId() );
@@ -370,122 +380,57 @@ public class DatabaseHelper
 		}
 	}
 
-	private enum Domains
+	private static final class Domains
 	{
-		TABLE_NAME( "Domains" ),
-		FIELD_ID( "DomainID" ),
-		FIELD_URL( "URL" );
-
-		private final String mField;
-
-		Domains( final String field )
-		{
-			mField = field;
-		}
-
-		@Override
-		public String toString()
-		{
-			return mField;
-		}
+		private static final String TABLE_NAME = "Domains";
+		private static final String FIELD_ID = "DomainID";
+		private static final String FIELD_URL = "URL";
 	}
 
-	private enum Locations
+	private static final class Locations
 	{
-		TABLE_NAME( "Locations" ),
-		FIELD_ID( "LocationID" ),
-		FIELD_CITY( "City" ),
-		FIELD_COUNTRY( "Country" ),
-		FIELD_LATITUDE( "Latitude" ),
-		FIELD_LONGITUDE( "Longitude" );
-
-		private final String mField;
-
-		Locations( final String field )
-		{
-			mField = field;
-		}
-
-		@Override
-		public String toString()
-		{
-			return mField;
-		}
+		private static final String TABLE_NAME = "Locations";
+		private static final String FIELD_ID = "LocationID";
+		private static final String FIELD_CITY = "City";
+		private static final String FIELD_COUNTRY = "Country";
+		private static final String FIELD_LATITUDE = "Latitude";
+		private static final String FIELD_LONGITUDE = "Longitude";
 	}
 
-	private enum Tests
+	private static final class Tests
 	{
-		TABLE_NAME( "Tests" ),
-		FIELD_FK_DOMAIN_ID( "FK_DomainID" ),
-		FIELD_TEST_NUMBER( "TestNumber" ),
-		FIELD_TIMESTAMP( "Timestamp" ),
-		FIELD_FK_LOCATION_ID( "FK_LocationID" ),
-		FIELD_FK_IPV4_TEST_ID( "FK_IPv4TestID" ),
-		FIELD_FK_IPV6_TEST_ID( "FK_IPv6TestID" );
-
-		private final String mField;
-
-		Tests( final String field )
-		{
-			mField = field;
-		}
-
-		@Override
-		public String toString()
-		{
-			return mField;
-		}
+		private static final String TABLE_NAME = "Tests";
+		private static final String FIELD_FK_DOMAIN_ID = "FK_DomainID";
+		private static final String FIELD_TEST_NUMBER = "TestNumber";
+		private static final String FIELD_TIMESTAMP = "Timestamp";
+		private static final String FIELD_FK_LOCATION_ID = "FK_LocationID";
+		private static final String FIELD_FK_IPV4_TEST_ID = "FK_IPv4TestID";
+		private static final String FIELD_FK_IPV6_TEST_ID = "FK_IPv6TestID";
 	}
 
-	private enum IPv4Tests
+	private static final class IPv4Tests
 	{
-		TABLE_NAME( "IPv4Tests" ),
-		FIELD_ID( "IPv4TestID" ),
-		FIELD_ADDRESS( "IPv4Address" ),
-		FIELD_ADDRESS_PING( "IPv4AddressPing" ),
-		FIELD_FK_ADDRESS_LOCATION_ID( "FK_IPv4AddressLocationID" ),
-		FIELD_HTTP_STATUS_CODE( "IPv4HttpStatusCode" ),
-		FIELD_MX_ADDRESS( "IPv4MXAddress" ),
-		FIELD_FK_MX_ADDRESS_LOCATION_ID( "FK_IPv4MXAddressLocationID" ),
-		FIELD_HAS_WORKING_SMTP( "IPv4HasWorkingSMTP" );
-
-		private final String mField;
-
-		IPv4Tests( final String field )
-		{
-			mField = field;
-		}
-
-		@Override
-		public String toString()
-		{
-			return mField;
-		}
+		private static final String TABLE_NAME = "IPv4Tests";
+		private static final String FIELD_ID = "IPv4TestID";
+		private static final String FIELD_ADDRESS = "IPv4Address";
+		private static final String FIELD_ADDRESS_PING = "IPv4AddressPing";
+		private static final String FIELD_FK_ADDRESS_LOCATION_ID = "FK_IPv4AddressLocationID";
+		private static final String FIELD_HTTP_STATUS_CODE = "IPv4HttpStatusCode";
+		private static final String FIELD_MX_ADDRESS = "IPv4MXAddress";
+		private static final String FIELD_FK_MX_ADDRESS_LOCATION_ID = "FK_IPv4MXAddressLocationID";
+		private static final String FIELD_HAS_WORKING_SMTP = "IPv4HasWorkingSMTP";
 	}
 
-	private enum IPv6Tests
+	private static final class IPv6Tests
 	{
-		TABLE_NAME( "IPv6Tests" ),
-		FIELD_ID( "IPv6TestID" ),
-		FIELD_ADDRESS( "IPv6Address" ),
-		FIELD_ADDRESS_PING( "IPv6AddressPing" ),
-		FIELD_FK_ADDRESS_LOCATION_ID( "FK_IPv6AddressLocationID" ),
-		FIELD_HTTP_STATUS_CODE( "IPv6HttpStatusCode" ),
-		FIELD_MX_ADDRESS( "IPv6MXAddress" ),
-		FIELD_FK_MX_ADDRESS_LOCATION_ID( "FK_IPv6MXAddressLocationID" ),
-		FIELD_HAS_WORKING_SMTP( "IPv6HasWorkingSMTP" );
-
-		private final String mField;
-
-		IPv6Tests( final String field )
-		{
-			mField = field;
-		}
-
-		@Override
-		public String toString()
-		{
-			return mField;
-		}
+		private static final String TABLE_NAME = "IPv6Tests";
+		private static final String FIELD_ID = "IPv6TestID";
+		private static final String FIELD_ADDRESS = "IPv6Address";
+		private static final String FIELD_ADDRESS_PING = "IPv6AddressPing";
+		private static final String FIELD_FK_ADDRESS_LOCATION_ID = "FK_IPv6AddressLocationID";
+		private static final String FIELD_HTTP_STATUS_CODE = "IPv6HttpStatusCode";
+		private static final String FIELD_MX_ADDRESS = "IPv6MXAddress";
+		private static final String FIELD_FK_MX_ADDRESS_LOCATION_ID = "FK_IPv6MXAddressLocationID";
+		private static final String FIELD_HAS_WORKING_SMTP = "IPv6HasWorkingSMTP";
 	}
 }

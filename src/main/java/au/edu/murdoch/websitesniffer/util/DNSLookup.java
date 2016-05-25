@@ -18,11 +18,12 @@ package au.edu.murdoch.websitesniffer.util;
 
 import org.xbill.DNS.*;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class DNSLookup
 {
-	public static String getIPv4Address( final String url ) throws TextParseException, UnknownHostException
+	public static InetAddress getIPv4Address( final String url ) throws TextParseException, UnknownHostException
 	{
 		String address = null;
 
@@ -33,10 +34,10 @@ public class DNSLookup
 			address = record.getAddress().getHostAddress();
 		}
 
-		return address;
+		return address == null ? null : InetAddress.getByName( address );
 	}
 
-	public static String getIPv6Address( final String url ) throws TextParseException, UnknownHostException
+	public static InetAddress getIPv6Address( final String url ) throws TextParseException, UnknownHostException
 	{
 		String address = null;
 
@@ -47,7 +48,7 @@ public class DNSLookup
 			address = record.getAddress().getHostAddress();
 		}
 
-		return address;
+		return address == null ? null : InetAddress.getByName( address );
 	}
 
 	public static String getMXUrl( final String url ) throws TextParseException, UnknownHostException

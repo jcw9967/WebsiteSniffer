@@ -22,8 +22,8 @@ import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class IPTest
@@ -46,13 +46,13 @@ public abstract class IPTest
 
 	final Domain mDomain;
 	boolean mHasTestedAddress;
-	String mAddress;
+	InetAddress mAddress;
 	boolean mHasTestedPing;
 	Integer mPing;
 	boolean mHasTestedHttpStatusCode;
 	Integer mHttpStatusCode;
 	boolean mHasTestedMxAddress;
-	String mMxAddress;
+	InetAddress mMxAddress;
 
 
 	IPTest( final Domain domain )
@@ -130,9 +130,9 @@ public abstract class IPTest
 		return mHasWorkingSMTP;
 	}
 
-	public abstract String getAddress();
+	public abstract InetAddress getAddress();
 
-	public abstract String getMxAddress();
+	public abstract InetAddress getMxAddress();
 
 	public abstract Integer getPing();
 }

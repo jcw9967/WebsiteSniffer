@@ -52,17 +52,19 @@ public class LocationHelper
 		final URL url = new URL( "http://checkip.amazonaws.com" );
 		try( final BufferedReader bufferedReader = new BufferedReader( new InputStreamReader( url.openStream() ) ) )
 		{
-			return getLocationByIP( bufferedReader.readLine() );
+			return getLocationByIP( InetAddress.getByName( bufferedReader.readLine() ) );
 		}
 	}
 
-	public Location getLocationByIP( final String ip ) throws IOException, GeoIp2Exception, SQLException, NullPointerException
+	public Location getLocationByIP( final InetAddress address ) throws IOException, GeoIp2Exception, SQLException, NullPointerException
 	{
-		if( ip != null )
+		if( address == null )
 		{
-			final DatabaseReader mReader = new DatabaseReader.Builder( mLocationDatabase ).withCache( mCache ).build();
+			throw new NullPointerException( "IP is null." );
+		}
 
-			final InetAddress address = InetAddress.getByName( ip );
+		try( final DatabaseReader mReader = new DatabaseReader.Builder( mLocationDatabase ).withCache( mCache ).build() )
+		{
 			final CityResponse response = mReader.city( address );
 
 			final String city = response.getCity().getName();
@@ -80,10 +82,6 @@ public class LocationHelper
 			}
 
 			return location;
-		}
-		else
-		{
-			throw new NullPointerException( "IP is null!" );
 		}
 	}
 }

@@ -159,13 +159,13 @@ public class Main
 			final List<Domain> domains = DatabaseHelper.getInstance().getAllDomains();
 			if( domains.size() > 0 )
 			{
-				System.out.print( "IPv6 is..." );
-				System.out.println( ( hasIPv6() ? " " : " NOT " ) + "available!" );
+				System.out.print( "IPv6 is... " );
+				System.out.println( ( hasIPv6() ? "" : "NOT " ) + "available!" );
 
 				//Get user's location
-				System.out.print( "Your location is..." );
+				System.out.print( "Your location is... " );
 				final Location userLocation = LocationHelper.getInstance().getLocationForHost();
-				System.out.println( " " + userLocation );
+				System.out.println( userLocation );
 
 				if( userLocation != null )
 				{

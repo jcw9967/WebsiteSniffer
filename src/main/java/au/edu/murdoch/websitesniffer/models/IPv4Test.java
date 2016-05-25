@@ -24,9 +24,8 @@ import org.jsoup.Jsoup;
 import org.xbill.DNS.TextParseException;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class IPv4Test extends IPTest
@@ -39,7 +38,7 @@ public class IPv4Test extends IPTest
 	}
 
 	@Override
-	public String getAddress()
+	public InetAddress getAddress()
 	{
 		if( !mHasTestedAddress )
 		{
@@ -68,7 +67,11 @@ public class IPv4Test extends IPTest
 			{
 				try
 				{
-					final Connection.Response response = Jsoup.connect( "http://" + mAddress ).method( Connection.Method.HEAD ).execute();
+					final Connection.Response response = Jsoup
+							.connect( "http://" + mAddress.getHostAddress() )
+							.method( Connection.Method.HEAD )
+							.execute();
+
 					mHttpStatusCode = response.statusCode();
 				}
 				catch( final HttpStatusException e )
@@ -85,7 +88,7 @@ public class IPv4Test extends IPTest
 	}
 
 	@Override
-	public String getMxAddress()
+	public InetAddress getMxAddress()
 	{
 		if( !mHasTestedMxAddress )
 		{
