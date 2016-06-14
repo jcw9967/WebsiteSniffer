@@ -28,9 +28,6 @@ import java.util.logging.Logger;
 
 public abstract class IPTest
 {
-	private static final Logger log = Logger.getLogger( IPTest.class.getName() );
-	static final int MAX_REDIRECTS = 5;
-
 	public enum Type
 	{
 		IPv4,
@@ -53,7 +50,6 @@ public abstract class IPTest
 	Integer mHttpStatusCode;
 	boolean mHasTestedMxAddress;
 	InetAddress mMxAddress;
-
 
 	IPTest( final Domain domain )
 	{
