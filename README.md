@@ -18,7 +18,7 @@ usage: java -jar <FILENAME> [options]
 
 If the `-cli` option isn't specified, a GUI will be used instead of the CLI.
 
-## What else?
+## About Us :-
 Website Sniffer uses SQLite for its storage database. To retrieve data from it download the SQLite binary [here](https://www.sqlite.org/download.html). Once downloaded open the database file using `.open <FILENAME.db>`. The database schema can be viewed using `.fullschema`.
 
 Each URL in the url list must be line separated, like this:
